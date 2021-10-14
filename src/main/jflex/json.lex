@@ -6,7 +6,7 @@ package org.json.simple.parser;
 private StringBuffer sb=new StringBuffer();
 
 long getPosition(){
-	return yychar;
+    return yychar;
 }
 
 %}
@@ -36,15 +36,15 @@ FALLBACK_CH = .
 <STRING_BEGIN> \\r				{sb.append('\r');}
 <STRING_BEGIN> \\t				{sb.append('\t');}
 <STRING_BEGIN> \\u{HEX_D}{HEX_D}{HEX_D}{HEX_D}	{	try{
-														int ch=Integer.parseInt(yytext().substring(2),16);
-														sb.append((char)ch);
-													}
-													catch(Exception e){
-														throw new ParseException(yychar, ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
-													}
-												}
+                                                        int ch=Integer.parseInt(yytext().substring(2),16);
+                                                        sb.append((char)ch);
+                                                    }
+                                                    catch(Exception e){
+                                                        throw new ParseException(yychar, ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
+                                                    }
+                                                }
 <STRING_BEGIN> \\				{sb.append('\\');}
-												
+
 <YYINITIAL> \" 					{ sb = null; sb = new StringBuffer(); yybegin(STRING_BEGIN);}
 <YYINITIAL> {INT}				{ Long val=Long.valueOf(yytext()); return new Yytoken(Yytoken.TYPE_VALUE, val);}
 <YYINITIAL> {DOUBLE}			{ Double val=Double.valueOf(yytext()); return new Yytoken(Yytoken.TYPE_VALUE, val);}
