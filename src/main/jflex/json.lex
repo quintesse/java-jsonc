@@ -5,13 +5,12 @@ package org.json.simple.parser;
 %{
 private StringBuffer sb=new StringBuffer();
 
-int getPosition(){
+long getPosition(){
 	return yychar;
 }
 
 %}
 
-%table
 %unicode
 %state STRING_BEGIN
 

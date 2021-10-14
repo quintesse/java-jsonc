@@ -15,7 +15,7 @@ public class ParseException extends Exception {
 
 	private int errorType;
 	private Object unexpectedObject;
-	private int position;
+	private long position;
 	
 	public ParseException(int errorType){
 		this(-1, errorType, null);
@@ -25,7 +25,7 @@ public class ParseException extends Exception {
 		this(-1, errorType, unexpectedObject);
 	}
 	
-	public ParseException(int position, int errorType, Object unexpectedObject){
+	public ParseException(long position, int errorType, Object unexpectedObject){
 		this.position = position;
 		this.errorType = errorType;
 		this.unexpectedObject = unexpectedObject;
@@ -44,11 +44,11 @@ public class ParseException extends Exception {
 	 * 
 	 * @return The character position (starting with 0) of the input where the error occurs.
 	 */
-	public int getPosition() {
+	public long getPosition() {
 		return position;
 	}
 	
-	public void setPosition(int position) {
+	public void setPosition(long position) {
 		this.position = position;
 	}
 	

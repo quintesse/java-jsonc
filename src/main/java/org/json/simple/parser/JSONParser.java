@@ -67,7 +67,7 @@ public class JSONParser {
 	/**
 	 * @return The position of the beginning of the current token.
 	 */
-	public int getPosition(){
+	public long getPosition(){
 		return lexer.getPosition();
 	}
 	
