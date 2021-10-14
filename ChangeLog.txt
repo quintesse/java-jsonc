@@ -1,0 +1,5 @@
+ChangeLog
+
+Version 0.1 (2012/01/29)
+* Forked form https://github.com/fangyidong/json-simple
+* Project clean-up
