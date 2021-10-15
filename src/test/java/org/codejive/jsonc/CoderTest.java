@@ -26,7 +26,7 @@ public class CoderTest {
         System.out.println("=======decode=======");
 
         String s = "[0,{\"1\":{\"2\":{\"3\":{\"4\":[5,{\"6\":7}]}}}}]";
-        Object obj = JsonValue.parse(s);
+        Object obj = JsonValue.parseWithException(s);
         JsonArray array = (JsonArray) obj;
         System.out.println("======the 2nd element of array======");
         System.out.println(array.get(1));
@@ -132,7 +132,7 @@ public class CoderTest {
         ContentHandler myHandler =
                 new ContentHandler() {
 
-                    public boolean endArray() throws JsonParseException {
+                    public boolean endArray(Status status) throws JsonParseException {
                         System.out.println("endArray()");
                         return true;
                     }
@@ -141,7 +141,7 @@ public class CoderTest {
                         System.out.println("endJSON()");
                     }
 
-                    public boolean endObject() throws JsonParseException {
+                    public boolean endObject(Status status) throws JsonParseException {
                         System.out.println("endObject()");
                         return true;
                     }
@@ -151,12 +151,13 @@ public class CoderTest {
                         return true;
                     }
 
-                    public boolean primitive(Object value) throws JsonParseException {
+                    public boolean primitive(Status status, Object value)
+                            throws JsonParseException {
                         System.out.println("primitive(): " + value);
                         return true;
                     }
 
-                    public boolean startArray() throws JsonParseException {
+                    public boolean startArray(Status status) throws JsonParseException {
                         System.out.println("startArray()");
                         return true;
                     }
@@ -165,7 +166,7 @@ public class CoderTest {
                         System.out.println("startJSON()");
                     }
 
-                    public boolean startObject() throws JsonParseException {
+                    public boolean startObject(Status status) throws JsonParseException {
                         System.out.println("startObject()");
                         return true;
                     }
@@ -217,7 +218,8 @@ public class CoderTest {
                 end = true;
             }
 
-            public boolean primitive(Object value) throws JsonParseException, IOException {
+            public boolean primitive(Status status, Object value)
+                    throws JsonParseException, IOException {
                 if (key != null) {
                     if (key.equals(matchKey)) {
                         found = true;
@@ -229,11 +231,11 @@ public class CoderTest {
                 return true;
             }
 
-            public boolean startArray() throws JsonParseException, IOException {
+            public boolean startArray(Status status) throws JsonParseException, IOException {
                 return true;
             }
 
-            public boolean startObject() throws JsonParseException, IOException {
+            public boolean startObject(Status status) throws JsonParseException, IOException {
                 return true;
             }
 
@@ -242,11 +244,11 @@ public class CoderTest {
                 return true;
             }
 
-            public boolean endArray() throws JsonParseException, IOException {
+            public boolean endArray(Status status) throws JsonParseException, IOException {
                 return false;
             }
 
-            public boolean endObject() throws JsonParseException, IOException {
+            public boolean endObject(Status status) throws JsonParseException, IOException {
                 return true;
             }
 

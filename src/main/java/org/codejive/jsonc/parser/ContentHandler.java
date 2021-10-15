@@ -10,6 +10,12 @@ import java.io.IOException;
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
 public interface ContentHandler {
+    enum Status {
+        TOPLEVEL,
+        OBJECT,
+        ARRAY
+    };
+
     /**
      * Receive notification of the beginning of JSON processing. The parser will invoke this method
      * only once.
@@ -34,7 +40,7 @@ public interface ContentHandler {
      *     when receiving this exception.
      * @see #endJSON
      */
-    boolean startObject() throws JsonParseException, IOException;
+    boolean startObject(Status status) throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of a JSON object.
@@ -43,7 +49,7 @@ public interface ContentHandler {
      * @throws JsonParseException
      * @see #startObject
      */
-    boolean endObject() throws JsonParseException, IOException;
+    boolean endObject(Status status) throws JsonParseException, IOException;
 
     /**
      * Receive notification of the beginning of a JSON object entry.
@@ -71,7 +77,7 @@ public interface ContentHandler {
      * @throws JsonParseException
      * @see #endArray
      */
-    boolean startArray() throws JsonParseException, IOException;
+    boolean startArray(Status status) throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of a JSON array.
@@ -80,7 +86,7 @@ public interface ContentHandler {
      * @throws JsonParseException
      * @see #startArray
      */
-    boolean endArray() throws JsonParseException, IOException;
+    boolean endArray(Status status) throws JsonParseException, IOException;
 
     /**
      * Receive notification of the JSON primitive values: java.lang.String, java.lang.Number,
@@ -91,5 +97,5 @@ public interface ContentHandler {
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException
      */
-    boolean primitive(Object value) throws JsonParseException, IOException;
+    boolean primitive(Status status, Object value) throws JsonParseException, IOException;
 }
