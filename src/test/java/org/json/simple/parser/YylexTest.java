@@ -17,8 +17,13 @@ public class YylexTest {
     }
 
     @Test
-    public void testStringEscapes() throws Exception {
+    public void testEscapes() throws Exception {
         testLexOk("\"abc\\/\\r\\b\\n\\t\\f\\\\\"", Yytoken.TYPE_VALUE, "abc/\r\b\n\t\f\\");
+    }
+
+    @Test
+    public void testEscapeInvalid() throws Exception {
+        testLexError("\"abc\\x\"", ParseException.ERROR_UNEXPECTED_CHAR, 'x', 4L);
     }
 
     @Test
@@ -34,11 +39,6 @@ public class YylexTest {
     @Test
     public void testIntegerNegative() throws Exception {
         testLexOk("-123456789", Yytoken.TYPE_VALUE, -123456789L);
-    }
-
-    @Test
-    public void testIntegerInvalid() throws Exception {
-        testLexError("01", ParseException.ERROR_UNEXPECTED_CHAR, '\b', 0L);
     }
 
     @Test
