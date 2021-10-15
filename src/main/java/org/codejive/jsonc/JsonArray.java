@@ -1,4 +1,4 @@
-package org.json.simple;
+package org.codejive.jsonc;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -12,11 +12,11 @@ import java.util.Iterator;
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
+public class JsonArray extends ArrayList implements JsonAware, JsonStreamAware {
     private static final long serialVersionUID = 3957988303675231981L;
 
     /** Constructs an empty JSONArray. */
-    public JSONArray() {
+    public JsonArray() {
         super();
     }
 
@@ -26,7 +26,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
      *
      * @param c the collection whose elements are to be placed into this JSONArray
      */
-    public JSONArray(Collection c) {
+    public JsonArray(Collection c) {
         super(c);
     }
 
@@ -35,7 +35,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
      * JSONAware, JSONStreamAware and JSONAware specific behaviours will be ignored at this top
      * level.
      *
-     * @see org.json.simple.JSONValue#writeJSONString(Object, Writer)
+     * @see JsonValue#writeJSONString(Object, Writer)
      * @param collection
      * @param out
      */
@@ -59,7 +59,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
                 continue;
             }
 
-            JSONValue.writeJSONString(value, out);
+            JsonValue.writeJSONString(value, out);
         }
         out.write(']');
     }
@@ -72,7 +72,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
      * Convert a list to JSON text. The result is a JSON array. If this list is also a JSONAware,
      * JSONAware specific behaviours will be omitted at this top level.
      *
-     * @see org.json.simple.JSONValue#toJSONString(Object)
+     * @see JsonValue#toJSONString(Object)
      * @param collection
      * @return JSON text, or "null" if list is null.
      */
@@ -335,11 +335,11 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
             out.write("[]");
         } else {
             out.write("[");
-            JSONValue.writeJSONString(array[0], out);
+            JsonValue.writeJSONString(array[0], out);
 
             for (int i = 1; i < array.length; i++) {
                 out.write(",");
-                JSONValue.writeJSONString(array[i], out);
+                JsonValue.writeJSONString(array[i], out);
             }
 
             out.write("]");
@@ -364,7 +364,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
 
     /**
      * Returns a string representation of this array. This is equivalent to calling {@link
-     * JSONArray#toJSONString()}.
+     * JsonArray#toJSONString()}.
      */
     public String toString() {
         return toJSONString();

@@ -1,4 +1,4 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
 %%
 
@@ -9,12 +9,12 @@ long getPosition(){
     return yychar;
 }
 
-private char unicodeChar() throws ParseException {
+private char unicodeChar() throws JsonParseException {
     try {
         int hex = Integer.parseInt(yytext().substring(2), 16);
         return (char)hex;
     } catch(Exception e){
-        throw new ParseException(yychar, ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
+        throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_EXCEPTION, e);
     }
 }
 %}
@@ -22,7 +22,7 @@ private char unicodeChar() throws ParseException {
 %unicode
 %state STRING
 
-%yylexthrow ParseException
+%yylexthrow JsonParseException
 %char
 
 digit = [0-9]
@@ -59,7 +59,7 @@ UNESCAPED_CH = [^\"\\]
     ","                 { return new Yytoken(Yytoken.TYPE_COMMA,null); }
     ":"                 { return new Yytoken(Yytoken.TYPE_COLON,null); }
     {white_space}+      {}
-    .                   { throw new ParseException(yychar, ParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(0))); }
+    .                   { throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(0))); }
 }
 
 <STRING> {

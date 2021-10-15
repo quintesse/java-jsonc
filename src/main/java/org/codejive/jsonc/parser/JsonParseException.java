@@ -1,11 +1,11 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
 /**
  * ParseException explains why and where the error occurs in source JSON text.
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class ParseException extends Exception {
+public class JsonParseException extends Exception {
     private static final long serialVersionUID = -7880698968187728547L;
 
     public static final int ERROR_UNEXPECTED_CHAR = 0;
@@ -16,15 +16,15 @@ public class ParseException extends Exception {
     private Object unexpectedObject;
     private long position;
 
-    public ParseException(int errorType) {
+    public JsonParseException(int errorType) {
         this(-1, errorType, null);
     }
 
-    public ParseException(int errorType, Object unexpectedObject) {
+    public JsonParseException(int errorType, Object unexpectedObject) {
         this(-1, errorType, unexpectedObject);
     }
 
-    public ParseException(long position, int errorType, Object unexpectedObject) {
+    public JsonParseException(long position, int errorType, Object unexpectedObject) {
         this.position = position;
         this.errorType = errorType;
         this.unexpectedObject = unexpectedObject;
@@ -39,7 +39,7 @@ public class ParseException extends Exception {
     }
 
     /**
-     * @see org.json.simple.parser.JSONParser#getPosition()
+     * @see JsonParser#getPosition()
      * @return The character position (starting with 0) of the input where the error occurs.
      */
     public long getPosition() {
@@ -51,7 +51,7 @@ public class ParseException extends Exception {
     }
 
     /**
-     * @see org.json.simple.parser.Yytoken
+     * @see Yytoken
      * @return One of the following base on the value of errorType: ERROR_UNEXPECTED_CHAR
      *     java.lang.Character ERROR_UNEXPECTED_TOKEN org.json.simple.parser.Yytoken
      *     ERROR_UNEXPECTED_EXCEPTION java.lang.Exception

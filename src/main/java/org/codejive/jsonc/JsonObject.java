@@ -1,4 +1,4 @@
-package org.json.simple;
+package org.codejive.jsonc;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -12,11 +12,11 @@ import java.util.Map;
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAware {
+public class JsonObject extends HashMap implements Map, JsonAware, JsonStreamAware {
 
     private static final long serialVersionUID = -503443796854799292L;
 
-    public JSONObject() {
+    public JsonObject() {
         super();
     }
 
@@ -26,7 +26,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
      *
      * @param map
      */
-    public JSONObject(Map map) {
+    public JsonObject(Map map) {
         super(map);
     }
 
@@ -35,7 +35,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
      * JSONStreamAware, JSONAware or JSONStreamAware specific behaviours will be ignored at this top
      * level.
      *
-     * @see org.json.simple.JSONValue#writeJSONString(Object, Writer)
+     * @see JsonValue#writeJSONString(Object, Writer)
      * @param map
      * @param out
      */
@@ -57,7 +57,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
             out.write(escape(String.valueOf(entry.getKey())));
             out.write('\"');
             out.write(':');
-            JSONValue.writeJSONString(entry.getValue(), out);
+            JsonValue.writeJSONString(entry.getValue(), out);
         }
         out.write('}');
     }
@@ -70,7 +70,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
      * Convert a map to JSON text. The result is a JSON object. If this map is also a JSONAware,
      * JSONAware specific behaviours will be omitted at this top level.
      *
-     * @see org.json.simple.JSONValue#toJSONString(Object)
+     * @see JsonValue#toJSONString(Object)
      * @param map
      * @return JSON text, or "null" if map is null.
      */
@@ -98,10 +98,10 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
         StringBuffer sb = new StringBuffer();
         sb.append('\"');
         if (key == null) sb.append("null");
-        else JSONValue.escape(key, sb);
+        else JsonValue.escape(key, sb);
         sb.append('\"').append(':');
 
-        sb.append(JSONValue.toJSONString(value));
+        sb.append(JsonValue.toJSONString(value));
 
         return sb.toString();
     }
@@ -110,11 +110,11 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
      * Escape quotes, \, /, \r, \n, \b, \f, \t and other control characters (U+0000 through U+001F).
      * It's the same as JSONValue.escape() only for compatibility here.
      *
-     * @see org.json.simple.JSONValue#escape(String)
+     * @see JsonValue#escape(String)
      * @param s
      * @return
      */
     public static String escape(String s) {
-        return JSONValue.escape(s);
+        return JsonValue.escape(s);
     }
 }

@@ -1,4 +1,4 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
 import java.io.IOException;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
  * A simplified and stoppable SAX-like content handler for stream processing of JSON text.
  *
  * @see org.xml.sax.ContentHandler
- * @see org.json.simple.parser.JSONParser#parse(java.io.Reader, ContentHandler, boolean)
+ * @see JsonParser#parse(java.io.Reader, ContentHandler, boolean)
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
 public interface ContentHandler {
@@ -14,73 +14,73 @@ public interface ContentHandler {
      * Receive notification of the beginning of JSON processing. The parser will invoke this method
      * only once.
      *
-     * @throws ParseException - JSONParser will stop and throw the same exception to the caller when
-     *     receiving this exception.
+     * @throws JsonParseException - JSONParser will stop and throw the same exception to the caller
+     *     when receiving this exception.
      */
-    void startJSON() throws ParseException, IOException;
+    void startJSON() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of JSON processing.
      *
-     * @throws ParseException
+     * @throws JsonParseException
      */
-    void endJSON() throws ParseException, IOException;
+    void endJSON() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the beginning of a JSON object.
      *
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException - JSONParser will stop and throw the same exception to the caller when
-     *     receiving this exception.
+     * @throws JsonParseException - JSONParser will stop and throw the same exception to the caller
+     *     when receiving this exception.
      * @see #endJSON
      */
-    boolean startObject() throws ParseException, IOException;
+    boolean startObject() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of a JSON object.
      *
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      * @see #startObject
      */
-    boolean endObject() throws ParseException, IOException;
+    boolean endObject() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the beginning of a JSON object entry.
      *
      * @param key - Key of a JSON object entry.
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      * @see #endObjectEntry
      */
-    boolean startObjectEntry(String key) throws ParseException, IOException;
+    boolean startObjectEntry(String key) throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of the value of previous object entry.
      *
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      * @see #startObjectEntry
      */
-    boolean endObjectEntry() throws ParseException, IOException;
+    boolean endObjectEntry() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the beginning of a JSON array.
      *
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      * @see #endArray
      */
-    boolean startArray() throws ParseException, IOException;
+    boolean startArray() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the end of a JSON array.
      *
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      * @see #startArray
      */
-    boolean endArray() throws ParseException, IOException;
+    boolean endArray() throws JsonParseException, IOException;
 
     /**
      * Receive notification of the JSON primitive values: java.lang.String, java.lang.Number,
@@ -89,7 +89,7 @@ public interface ContentHandler {
      * @param value - Instance of the following: java.lang.String, java.lang.Number,
      *     java.lang.Boolean null
      * @return false if the handler wants to stop parsing after return.
-     * @throws ParseException
+     * @throws JsonParseException
      */
-    boolean primitive(Object value) throws ParseException, IOException;
+    boolean primitive(Object value) throws JsonParseException, IOException;
 }

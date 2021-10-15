@@ -1,34 +1,39 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-public class ParserTest {
+public class JsonParserTest {
 
     @ParameterizedTest
     @MethodSource("jsonOrgPassPathProvider")
-    public void jsonOrgPassFiles(Path testFile) throws IOException, ParseException {
-        Object result = (new JSONParser()).parse(Files.newBufferedReader(jsonOrgRoot().resolve(testFile)));
+    public void jsonOrgPassFiles(Path testFile) throws IOException, JsonParseException {
+        Object result =
+                (new JsonParser()).parse(Files.newBufferedReader(jsonOrgRoot().resolve(testFile)));
         System.out.println("Result (" + result.getClass() + ") = " + result);
     }
 
     @ParameterizedTest
     @MethodSource("jsonOrgFailPathProvider")
-    public void jsonOrgFailFiles(Path testFile) throws IOException, ParseException {
-        assertThrows(ParseException.class, () -> {
-            Object result = (new JSONParser()).parse(Files.newBufferedReader(jsonOrgRoot().resolve(testFile)));
-            System.err.println("Result (" + result.getClass() + ") = " + result);
-        });
+    public void jsonOrgFailFiles(Path testFile) throws IOException, JsonParseException {
+        assertThrows(
+                JsonParseException.class,
+                () -> {
+                    Object result =
+                            (new JsonParser())
+                                    .parse(
+                                            Files.newBufferedReader(
+                                                    jsonOrgRoot().resolve(testFile)));
+                    System.err.println("Result (" + result.getClass() + ") = " + result);
+                });
     }
 
     static Stream<Path> jsonOrgPassPathProvider() {
@@ -49,7 +54,7 @@ public class ParserTest {
     }
 
     static Path jsonOrgRoot() {
-        URL res = ParserTest.class.getClassLoader().getResource("json_org_test_suite");
+        URL res = JsonParserTest.class.getClassLoader().getResource("json_org_test_suite");
         try {
             return Paths.get(res.toURI());
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
 /** @author FangYidong<fangyidong@yahoo.com.cn> */
 public class Yytoken {

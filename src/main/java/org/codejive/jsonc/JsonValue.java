@@ -1,4 +1,4 @@
-package org.json.simple;
+package org.codejive.jsonc;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -8,26 +8,26 @@ import java.io.Writer;
 import java.util.Collection;
 // import java.util.List;
 import java.util.Map;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.codejive.jsonc.parser.JsonParseException;
+import org.codejive.jsonc.parser.JsonParser;
 
 /** @author FangYidong<fangyidong@yahoo.com.cn> */
-public class JSONValue {
+public class JsonValue {
     /**
      * Parse JSON text into java object from the input source. Please use parseWithException() if
      * you don't want to ignore the exception.
      *
-     * @see org.json.simple.parser.JSONParser#parse(Reader)
+     * @see JsonParser#parse(Reader)
      * @see #parseWithException(Reader)
      * @param in
      * @return Instance of the following: org.json.simple.JSONObject, org.json.simple.JSONArray,
      *     java.lang.String, java.lang.Number, java.lang.Boolean, null
      * @deprecated this method may throw an {@code Error} instead of returning {@code null}; please
-     *     use {@link JSONValue#parseWithException(Reader)} instead
+     *     use {@link JsonValue#parseWithException(Reader)} instead
      */
     public static Object parse(Reader in) {
         try {
-            JSONParser parser = new JSONParser();
+            JsonParser parser = new JsonParser();
             return parser.parse(in);
         } catch (Exception e) {
             return null;
@@ -38,13 +38,13 @@ public class JSONValue {
      * Parse JSON text into java object from the given string. Please use parseWithException() if
      * you don't want to ignore the exception.
      *
-     * @see org.json.simple.parser.JSONParser#parse(Reader)
+     * @see JsonParser#parse(Reader)
      * @see #parseWithException(Reader)
      * @param s
      * @return Instance of the following: org.json.simple.JSONObject, org.json.simple.JSONArray,
      *     java.lang.String, java.lang.Number, java.lang.Boolean, null
      * @deprecated this method may throw an {@code Error} instead of returning {@code null}; please
-     *     use {@link JSONValue#parseWithException(String)} instead
+     *     use {@link JsonValue#parseWithException(String)} instead
      */
     public static Object parse(String s) {
         StringReader in = new StringReader(s);
@@ -54,20 +54,20 @@ public class JSONValue {
     /**
      * Parse JSON text into java object from the input source.
      *
-     * @see org.json.simple.parser.JSONParser
+     * @see JsonParser
      * @param in
      * @return Instance of the following: org.json.simple.JSONObject, org.json.simple.JSONArray,
      *     java.lang.String, java.lang.Number, java.lang.Boolean, null
      * @throws IOException
-     * @throws ParseException
+     * @throws JsonParseException
      */
-    public static Object parseWithException(Reader in) throws IOException, ParseException {
-        JSONParser parser = new JSONParser();
+    public static Object parseWithException(Reader in) throws IOException, JsonParseException {
+        JsonParser parser = new JsonParser();
         return parser.parse(in);
     }
 
-    public static Object parseWithException(String s) throws ParseException {
-        JSONParser parser = new JSONParser();
+    public static Object parseWithException(String s) throws JsonParseException {
+        JsonParser parser = new JsonParser();
         return parser.parse(s);
     }
 
@@ -81,8 +81,8 @@ public class JSONValue {
      * JSONStreamAware and (Map or List) with "this" as the first parameter, use
      * JSONObject.writeJSONString(Map, Writer) or JSONArray.writeJSONString(List, Writer) instead.
      *
-     * @see org.json.simple.JSONObject#writeJSONString(Map, Writer)
-     * @see org.json.simple.JSONArray#writeJSONString(Collection, Writer)
+     * @see JsonObject#writeJSONString(Map, Writer)
+     * @see JsonArray#writeJSONString(Collection, Writer)
      * @param value
      * @param out
      */
@@ -121,68 +121,68 @@ public class JSONValue {
             return;
         }
 
-        if ((value instanceof JSONStreamAware)) {
-            ((JSONStreamAware) value).writeJSONString(out);
+        if ((value instanceof JsonStreamAware)) {
+            ((JsonStreamAware) value).writeJSONString(out);
             return;
         }
 
-        if ((value instanceof JSONAware)) {
-            out.write(((JSONAware) value).toJSONString());
+        if ((value instanceof JsonAware)) {
+            out.write(((JsonAware) value).toJSONString());
             return;
         }
 
         if (value instanceof Map) {
-            JSONObject.writeJSONString((Map) value, out);
+            JsonObject.writeJSONString((Map) value, out);
             return;
         }
 
         if (value instanceof Collection) {
-            JSONArray.writeJSONString((Collection) value, out);
+            JsonArray.writeJSONString((Collection) value, out);
             return;
         }
 
         if (value instanceof byte[]) {
-            JSONArray.writeJSONString((byte[]) value, out);
+            JsonArray.writeJSONString((byte[]) value, out);
             return;
         }
 
         if (value instanceof short[]) {
-            JSONArray.writeJSONString((short[]) value, out);
+            JsonArray.writeJSONString((short[]) value, out);
             return;
         }
 
         if (value instanceof int[]) {
-            JSONArray.writeJSONString((int[]) value, out);
+            JsonArray.writeJSONString((int[]) value, out);
             return;
         }
 
         if (value instanceof long[]) {
-            JSONArray.writeJSONString((long[]) value, out);
+            JsonArray.writeJSONString((long[]) value, out);
             return;
         }
 
         if (value instanceof float[]) {
-            JSONArray.writeJSONString((float[]) value, out);
+            JsonArray.writeJSONString((float[]) value, out);
             return;
         }
 
         if (value instanceof double[]) {
-            JSONArray.writeJSONString((double[]) value, out);
+            JsonArray.writeJSONString((double[]) value, out);
             return;
         }
 
         if (value instanceof boolean[]) {
-            JSONArray.writeJSONString((boolean[]) value, out);
+            JsonArray.writeJSONString((boolean[]) value, out);
             return;
         }
 
         if (value instanceof char[]) {
-            JSONArray.writeJSONString((char[]) value, out);
+            JsonArray.writeJSONString((char[]) value, out);
             return;
         }
 
         if (value instanceof Object[]) {
-            JSONArray.writeJSONString((Object[]) value, out);
+            JsonArray.writeJSONString((Object[]) value, out);
             return;
         }
 
@@ -199,8 +199,8 @@ public class JSONValue {
      * Map or List with "this" as the parameter, use JSONObject.toJSONString(Map) or
      * JSONArray.toJSONString(List) instead.
      *
-     * @see org.json.simple.JSONObject#toJSONString(Map)
-     * @see org.json.simple.JSONArray#toJSONString(List)
+     * @see JsonObject#toJSONString(Map)
+     * @see JsonArray#toJSONString(List)
      * @param value
      * @return JSON text, or "null" if value is null or it's an NaN or an INF number.
      */

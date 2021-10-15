@@ -1,4 +1,4 @@
-package org.json.simple.parser;
+package org.codejive.jsonc.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -23,7 +23,7 @@ public class YylexTest {
 
     @Test
     public void testEscapeInvalid() throws Exception {
-        testLexError("\"abc\\x\"", ParseException.ERROR_UNEXPECTED_CHAR, 'x', 4L);
+        testLexError("\"abc\\x\"", JsonParseException.ERROR_UNEXPECTED_CHAR, 'x', 4L);
     }
 
     @Test
@@ -58,12 +58,12 @@ public class YylexTest {
 
     @Test
     public void testUnexpectedBackspace() throws Exception {
-        testLexError("\b{", ParseException.ERROR_UNEXPECTED_CHAR, '\b', 0L);
+        testLexError("\b{", JsonParseException.ERROR_UNEXPECTED_CHAR, '\b', 0L);
     }
 
     @Test
     public void testInvalidValue() throws Exception {
-        testLexError("{a : b}", ParseException.ERROR_UNEXPECTED_CHAR, 'a', 1L);
+        testLexError("{a : b}", JsonParseException.ERROR_UNEXPECTED_CHAR, 'a', 1L);
     }
 
     private void testLexOk(String input, Object... expectedTokens) throws Exception {
@@ -87,12 +87,12 @@ public class YylexTest {
         System.out.println("Lexing: " + input);
         StringReader in = new StringReader(input);
         Yylex lexer = new Yylex(in);
-        ParseException err = null;
+        JsonParseException err = null;
         try {
             while (!lexer.yyatEOF()) {
                 lexer.yylex();
             }
-        } catch (ParseException e) {
+        } catch (JsonParseException e) {
             err = e;
             System.out.println("expected error:" + err);
             assertThat(e.getErrorType(), equalTo(expectedErrorType));

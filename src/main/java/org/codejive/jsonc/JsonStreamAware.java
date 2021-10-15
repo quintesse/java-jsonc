@@ -1,4 +1,4 @@
-package org.json.simple;
+package org.codejive.jsonc;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -8,7 +8,7 @@ import java.io.Writer;
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public interface JSONStreamAware {
+public interface JsonStreamAware {
     /** write JSON string to out. */
     void writeJSONString(Writer out) throws IOException;
 }
