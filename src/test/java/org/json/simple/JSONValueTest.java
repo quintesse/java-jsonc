@@ -1,10 +1,14 @@
 package org.json.simple;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import java.io.IOException;
 import java.io.StringWriter;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class JSONValueTest extends TestCase {
+public class JSONValueTest {
+    @Test
     public void testByteArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((byte[]) null));
         assertEquals("[]", JSONValue.toJSONString(new byte[0]));
@@ -30,6 +34,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7,22,86,-99]", writer.toString());
     }
 
+    @Test
     public void testShortArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((short[]) null));
         assertEquals("[]", JSONValue.toJSONString(new short[0]));
@@ -55,6 +60,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7,22,86,-99]", writer.toString());
     }
 
+    @Test
     public void testIntArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((int[]) null));
         assertEquals("[]", JSONValue.toJSONString(new int[0]));
@@ -80,6 +86,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7,22,86,-99]", writer.toString());
     }
 
+    @Test
     public void testLongArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((long[]) null));
         assertEquals("[]", JSONValue.toJSONString(new long[0]));
@@ -107,6 +114,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7,22,86,-99]", writer.toString());
     }
 
+    @Test
     public void testFloatArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((float[]) null));
         assertEquals("[]", JSONValue.toJSONString(new float[0]));
@@ -134,6 +142,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7.1,22.234,86.7,-99.02]", writer.toString());
     }
 
+    @Test
     public void testDoubleArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((double[]) null));
         assertEquals("[]", JSONValue.toJSONString(new double[0]));
@@ -161,6 +170,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[-7.1,22.234,86.7,-99.02]", writer.toString());
     }
 
+    @Test
     public void testBooleanArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((boolean[]) null));
         assertEquals("[]", JSONValue.toJSONString(new boolean[0]));
@@ -187,6 +197,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[true,false,true]", writer.toString());
     }
 
+    @Test
     public void testCharArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((char[]) null));
         assertEquals("[]", JSONValue.toJSONString(new char[0]));
@@ -212,6 +223,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[\"a\",\"b\",\"c\"]", writer.toString());
     }
 
+    @Test
     public void testObjectArrayToString() throws IOException {
         assertEquals("null", JSONValue.toJSONString((Object[]) null));
         assertEquals("[]", JSONValue.toJSONString(new Object[0]));
@@ -241,6 +253,7 @@ public class JSONValueTest extends TestCase {
         assertEquals("[\"Hello\",12,[1,2,3]]", writer.toString());
     }
 
+    @Test
     public void testArraysOfArrays() throws IOException {
 
         StringWriter writer;
@@ -262,5 +275,9 @@ public class JSONValueTest extends TestCase {
         writer = new StringWriter();
         JSONValue.writeJSONString(nestedStringArray, writer);
         assertEquals(expectedNestedStringString, writer.toString());
+    }
+
+    private void assertEquals(Object expected, Object val) {
+        assertThat(val, equalTo(expected));
     }
 }

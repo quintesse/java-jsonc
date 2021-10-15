@@ -1,5 +1,9 @@
 package org.json.simple;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -9,15 +13,15 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import junit.framework.TestCase;
 import org.json.simple.parser.ContainerFactory;
 import org.json.simple.parser.ContentHandler;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.jupiter.api.Test;
 
-/** @author FangYidong<fangyidong@yahoo.com.cn> */
-public class Test extends TestCase {
+public class CoderTest {
 
+    @Test
     public void testDecode() throws Exception {
         System.out.println("=======decode=======");
 
@@ -56,7 +60,7 @@ public class Test extends TestCase {
             obj = parser.parse(s);
         } catch (ParseException pe) {
             assertEquals(ParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
-            assertEquals(8, pe.getPosition());
+            assertEquals(8L, pe.getPosition());
         }
 
         s = "{\"name\":}";
@@ -64,7 +68,7 @@ public class Test extends TestCase {
             obj = parser.parse(s);
         } catch (ParseException pe) {
             assertEquals(ParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
-            assertEquals(8, pe.getPosition());
+            assertEquals(8L, pe.getPosition());
         }
 
         s = "{\"name";
@@ -72,14 +76,14 @@ public class Test extends TestCase {
             obj = parser.parse(s);
         } catch (ParseException pe) {
             assertEquals(ParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
-            assertEquals(6, pe.getPosition());
+            assertEquals(6L, pe.getPosition());
         }
 
         s = "[[null, 123.45, \"a\\\tb c\"}, true]";
         try {
             parser.parse(s);
         } catch (ParseException pe) {
-            assertEquals(24, pe.getPosition());
+            assertEquals(24L, pe.getPosition());
             System.out.println("Error at character position: " + pe.getPosition());
             switch (pe.getErrorType()) {
                 case ParseException.ERROR_UNEXPECTED_TOKEN:
@@ -279,6 +283,7 @@ public class Test extends TestCase {
         }
     }
 
+    @Test
     public void testEncode() throws Exception {
         System.out.println("=======encode=======");
 
@@ -371,5 +376,9 @@ public class Test extends TestCase {
         assertEquals(
                 "[{\"k11\":\"v11\",\"k12\":\"v12\",\"k13\":\"v13\",\"k14\":{\"k31\":\"v3\",\"k32\":123.45,\"k33\":false,\"k34\":null,\"k35\":[\"vvv\",\"1.23456789123456789\",true,null]}},{\"k21\":\"v21\",\"k22\":\"v22\",\"k23\":\"v23\"}]",
                 jsonString);
+    }
+
+    private void assertEquals(Object expected, Object val) {
+        assertThat(val, equalTo(expected));
     }
 }

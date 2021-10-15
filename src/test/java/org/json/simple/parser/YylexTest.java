@@ -1,73 +1,105 @@
 package org.json.simple.parser;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
 import java.io.StringReader;
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class YylexTest extends TestCase {
+public class YylexTest {
 
-    public void testYylex() throws Exception {
-        String s = "\"\\/\"";
-        System.out.println(s);
-        StringReader in = new StringReader(s);
+    @Test
+    public void testString() throws Exception {
+        testLexOk("\"\\/\"", Yytoken.TYPE_VALUE, "/");
+    }
+
+    @Test
+    public void testStringEscapes() throws Exception {
+        testLexOk("\"abc\\/\\r\\b\\n\\t\\f\\\\\"", Yytoken.TYPE_VALUE, "abc/\r\b\n\t\f\\");
+    }
+
+    @Test
+    public void testIntegerZero() throws Exception {
+        testLexOk("0", Yytoken.TYPE_VALUE, 0L);
+    }
+
+    @Test
+    public void testIntegerPositive() throws Exception {
+        testLexOk("42", Yytoken.TYPE_VALUE, 42L);
+    }
+
+    @Test
+    public void testIntegerNegative() throws Exception {
+        testLexOk("-123456789", Yytoken.TYPE_VALUE, -123456789L);
+    }
+
+    @Test
+    public void testIntegerInvalid() throws Exception {
+        testLexError("01", ParseException.ERROR_UNEXPECTED_CHAR, '\b', 0L);
+    }
+
+    @Test
+    public void testBrackets() throws Exception {
+        testLexOk("[]", Yytoken.TYPE_LEFT_SQUARE, Yytoken.TYPE_RIGHT_SQUARE);
+    }
+
+    @Test
+    public void testBraces() throws Exception {
+        testLexOk("{}", Yytoken.TYPE_LEFT_BRACE, Yytoken.TYPE_RIGHT_BRACE);
+    }
+
+    @Test
+    public void testWhitespace() throws Exception {
+        testLexOk("\t \f\n\r\n}", Yytoken.TYPE_RIGHT_BRACE);
+    }
+
+    @Test
+    public void testUnexpectedBackspace() throws Exception {
+        testLexError("\b{", ParseException.ERROR_UNEXPECTED_CHAR, '\b', 0L);
+    }
+
+    @Test
+    public void testInvalidValue() throws Exception {
+        testLexError("{a : b}", ParseException.ERROR_UNEXPECTED_CHAR, 'a', 1L);
+    }
+
+    private void testLexOk(String input, Object... expectedTokens) throws Exception {
+        System.out.println("Lexing: " + input);
+        StringReader in = new StringReader(input);
         Yylex lexer = new Yylex(in);
-        Yytoken token = lexer.yylex();
-        assertEquals(Yytoken.TYPE_VALUE, token.type);
-        assertEquals("/", token.value);
+        for (int i = 0; i < expectedTokens.length; i++) {
+            Object expectedToken = expectedTokens[i];
+            Yytoken token = lexer.yylex();
+            assertThat(token.type, equalTo(expectedToken));
+            if (expectedToken.equals(Yytoken.TYPE_VALUE)) {
+                Object expectedValue = expectedTokens[++i];
+                assertThat(token.value, equalTo(expectedValue));
+            }
+        }
+    }
 
-        s = "\"abc\\/\\r\\b\\n\\t\\f\\\\\"";
-        System.out.println(s);
-        in = new StringReader(s);
-        lexer = new Yylex(in);
-        token = lexer.yylex();
-        assertEquals(Yytoken.TYPE_VALUE, token.type);
-        assertEquals("abc/\r\b\n\t\f\\", token.value);
-
-        s = "[\t \n\r\n{ \t \t\n\r}";
-        System.out.println(s);
-        in = new StringReader(s);
-        lexer = new Yylex(in);
-        token = lexer.yylex();
-        assertEquals(Yytoken.TYPE_LEFT_SQUARE, token.type);
-        token = lexer.yylex();
-        assertEquals(Yytoken.TYPE_LEFT_BRACE, token.type);
-        token = lexer.yylex();
-        assertEquals(Yytoken.TYPE_RIGHT_BRACE, token.type);
-
-        s = "\b\f{";
-        System.out.println(s);
-        in = new StringReader(s);
-        lexer = new Yylex(in);
+    private void testLexError(
+            String input, int expectedErrorType, Object unexpectedObject, long expectedPosition)
+            throws Exception {
+        System.out.println("Lexing: " + input);
+        StringReader in = new StringReader(input);
+        Yylex lexer = new Yylex(in);
         ParseException err = null;
         try {
-            token = lexer.yylex();
+            while (!lexer.yyatEOF()) {
+                lexer.yylex();
+            }
         } catch (ParseException e) {
             err = e;
-            System.out.println("error:" + err);
-            assertEquals(ParseException.ERROR_UNEXPECTED_CHAR, e.getErrorType());
-            assertEquals(0, e.getPosition());
-            assertEquals(new Character('\b'), e.getUnexpectedObject());
+            System.out.println("expected error:" + err);
+            assertThat(e.getErrorType(), equalTo(expectedErrorType));
+            assertThat(e.getUnexpectedObject(), equalTo(unexpectedObject));
+            assertThat(e.getPosition(), equalTo(expectedPosition));
         } catch (IOException ie) {
-            throw ie;
-        }
-        assertTrue(err != null);
-
-        s = "{a : b}";
-        System.out.println(s);
-        in = new StringReader(s);
-        lexer = new Yylex(in);
-        err = null;
-        try {
-            lexer.yylex();
-            token = lexer.yylex();
-        } catch (ParseException e) {
-            err = e;
-            System.out.println("error:" + err);
-            assertEquals(ParseException.ERROR_UNEXPECTED_CHAR, e.getErrorType());
-            assertEquals(new Character('a'), e.getUnexpectedObject());
-            assertEquals(1, e.getPosition());
-        } catch (IOException ie) {
-            throw ie;
+            fail();
         }
         assertTrue(err != null);
     }
