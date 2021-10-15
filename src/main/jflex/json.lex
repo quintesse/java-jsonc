@@ -74,5 +74,5 @@ UNESCAPED_CH = [^\"\\]
     \\r                 { sb.append('\r'); }
     \\t                 { sb.append('\t'); }
     \\u{hex_digit}{4}   { sb.append(unicodeChar()); }
-    \\                  { sb.append('\\'); }
+    \\.                 { throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(1))); }
 }

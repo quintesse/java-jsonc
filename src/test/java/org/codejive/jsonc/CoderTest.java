@@ -79,7 +79,7 @@ public class CoderTest {
             assertEquals(6L, pe.getPosition());
         }
 
-        s = "[[null, 123.45, \"a\\\tb c\"}, true]";
+        s = "[[null, 123.45, \"a \tb c\"}, true]";
         try {
             parser.parse(s);
         } catch (JsonParseException pe) {
