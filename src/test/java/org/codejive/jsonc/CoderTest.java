@@ -2,6 +2,7 @@ package org.codejive.jsonc;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import org.codejive.jsonc.parser.ContainerFactory;
 import org.codejive.jsonc.parser.ContentHandler;
 import org.codejive.jsonc.parser.JsonParseException;
 import org.codejive.jsonc.parser.JsonParser;
+import org.codejive.jsonc.parser.JsonParserConfig;
 import org.junit.jupiter.api.Test;
 
 public class CoderTest {
@@ -49,8 +51,11 @@ public class CoderTest {
     @Test
     public void testDecodeExtraArrayComma() throws Exception {
         String s = "[5,]";
-        Object obj = JsonValue.parseWithException(s);
+        Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
         assertEquals("[5]", obj.toString());
+        assertThrows(JsonParseException.class, () -> {
+            (new JsonParser(JsonParserConfig.strictJson())).parse(s);
+        });
     }
 
     @Test

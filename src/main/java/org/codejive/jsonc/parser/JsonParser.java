@@ -246,11 +246,11 @@ public class JsonParser {
         LinkedList<Status> statusStack = handlerStatusStack;
 
         try {
+            nextToken();
             do {
                 switch (status) {
                     case INIT:
                         contentHandler.startJSON();
-                        nextToken();
                         if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (config.allowToplevelValues()) {
                                 status = Status.IN_FINISHED_VALUE;
@@ -261,33 +261,30 @@ public class JsonParser {
                                 status = Status.IN_ERROR;
                                 throw JsonParseException.unexpectedToken(getPosition(), token);
                             }
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_BRACE == token) {
                             status = Status.IN_OBJECT;
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.TOPLEVEL)) return;
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
                             status = Status.IN_ARRAY;
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.TOPLEVEL)) return;
+                            nextToken();
                         } else {
                             status = Status.IN_ERROR;
                         } // inner switch
                         break;
 
                     case IN_FINISHED_VALUE:
-                        nextToken();
-                        if (token == Yytoken.TYPE_EOF) {
-                            contentHandler.endJSON();
-                            status = Status.END;
-                            return;
-                        } else {
-                            status = Status.IN_ERROR;
-                            throw JsonParseException.unexpectedToken(getPosition(), token);
-                        }
+                        status = Status.IN_ERROR;
+                        break;
 
                     case IN_OBJECT:
-                        nextToken();
                         if (Yytoken.TYPE_COMMA == token) {
+                            nextToken();
+                            handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (token.value instanceof String) {
                                 String key = (String) token.value;
@@ -297,6 +294,7 @@ public class JsonParser {
                             } else {
                                 status = Status.IN_ERROR;
                             }
+                            nextToken();
                         } else if (Yytoken.TYPE_RIGHT_BRACE == token) {
                             if (statusStack.size() > 1) {
                                 statusStack.removeFirst();
@@ -305,32 +303,36 @@ public class JsonParser {
                                 status = Status.IN_FINISHED_VALUE;
                             }
                             if (!contentHandler.endObject(toHandlerStatus(status))) return;
+                            nextToken();
                         } else {
                             status = Status.IN_ERROR;
                         } // inner switch
                         break;
 
                     case PASSED_PAIR_KEY:
-                        nextToken();
                         if (Yytoken.TYPE_COLON == token) {
+                            nextToken();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             statusStack.removeFirst();
                             status = peekStatus(statusStack);
                             if (!contentHandler.primitive(
                                     ContentHandler.Status.OBJECT, token.value)) return;
                             if (!contentHandler.endObjectEntry()) return;
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
                             statusStack.removeFirst();
                             statusStack.addFirst(Status.IN_PAIR_VALUE);
                             status = Status.IN_ARRAY;
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.OBJECT)) return;
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_BRACE == token) {
                             statusStack.removeFirst();
                             statusStack.addFirst(Status.IN_PAIR_VALUE);
                             status = Status.IN_OBJECT;
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.OBJECT)) return;
+                            nextToken();
                         } else {
                             status = Status.IN_ERROR;
                         }
@@ -347,11 +349,13 @@ public class JsonParser {
                         break;
 
                     case IN_ARRAY:
-                        nextToken();
                         if (Yytoken.TYPE_COMMA == token) {
+                            nextToken();
+                            handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (!contentHandler.primitive(ContentHandler.Status.ARRAY, token.value))
                                 return;
+                            nextToken();
                         } else if (Yytoken.TYPE_RIGHT_SQUARE == token) {
                             if (statusStack.size() > 1) {
                                 statusStack.removeFirst();
@@ -360,14 +364,17 @@ public class JsonParser {
                                 status = Status.IN_FINISHED_VALUE;
                             }
                             if (!contentHandler.endArray(toHandlerStatus(status))) return;
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_BRACE == token) {
                             status = Status.IN_OBJECT;
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.ARRAY)) return;
+                            nextToken();
                         } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
                             status = Status.IN_ARRAY;
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.ARRAY)) return;
+                            nextToken();
                         } else {
                             status = Status.IN_ERROR;
                         } // inner switch
@@ -388,8 +395,27 @@ public class JsonParser {
             throw ie;
         }
 
+        if (status == Status.IN_FINISHED_VALUE && token == Yytoken.TYPE_EOF) {
+            contentHandler.endJSON();
+            status = Status.END;
+            return;
+        }
+
         status = Status.IN_ERROR;
         throw JsonParseException.unexpectedToken(getPosition(), token);
+    }
+
+    private void handleTrailingSeparator() {
+        if (!config.allowTrailingSeparator() && !isValueToken(token)) {
+            // Trailing separators are not allowed
+            status = Status.IN_ERROR;
+        }
+    }
+
+    private boolean isValueToken(Yytoken token) {
+        return token == Yytoken.TYPE_LEFT_BRACE
+                || token == Yytoken.TYPE_LEFT_SQUARE
+                || token instanceof Yytoken.YyPrimitiveToken;
     }
 
     private ContentHandler.Status toHandlerStatus(Status status) {
