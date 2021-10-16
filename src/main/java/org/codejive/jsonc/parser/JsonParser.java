@@ -26,11 +26,21 @@ public class JsonParser {
         IN_ERROR
     }
 
+    private final JsonParserConfig config;
+
     private final Yylex lexer = new Yylex(null);
 
     private Yytoken token = null;
     private LinkedList<Status> handlerStatusStack;
     private Status status = Status.INIT;
+
+    public JsonParser() {
+        this(JsonParserConfig.defaults());
+    }
+
+    public JsonParser(JsonParserConfig config) {
+        this.config = config;
+    }
 
     private Status peekStatus(LinkedList<Status> statusStack) {
         if (statusStack.isEmpty()) return Status.IN_ERROR;
