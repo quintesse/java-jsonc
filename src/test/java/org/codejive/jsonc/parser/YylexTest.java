@@ -13,12 +13,12 @@ public class YylexTest {
 
     @Test
     public void testString() throws Exception {
-        testLexOk("\"\\/\"", Yytoken.TYPE_VALUE, "/");
+        testLexOk("\"\\/\"", Yytoken.value("/"));
     }
 
     @Test
     public void testEscapes() throws Exception {
-        testLexOk("\"abc\\/\\r\\b\\n\\t\\f\\\\\"", Yytoken.TYPE_VALUE, "abc/\r\b\n\t\f\\");
+        testLexOk("\"abc\\/\\r\\b\\n\\t\\f\\\\\"", Yytoken.value("abc/\r\b\n\t\f\\"));
     }
 
     @Test
@@ -28,17 +28,17 @@ public class YylexTest {
 
     @Test
     public void testIntegerZero() throws Exception {
-        testLexOk("0", Yytoken.TYPE_VALUE, 0L);
+        testLexOk("0", Yytoken.value(0L));
     }
 
     @Test
     public void testIntegerPositive() throws Exception {
-        testLexOk("42", Yytoken.TYPE_VALUE, 42L);
+        testLexOk("42", Yytoken.value(42L));
     }
 
     @Test
     public void testIntegerNegative() throws Exception {
-        testLexOk("-123456789", Yytoken.TYPE_VALUE, -123456789L);
+        testLexOk("-123456789", Yytoken.value(-123456789L));
     }
 
     @Test
@@ -66,24 +66,21 @@ public class YylexTest {
         testLexError("{a : b}", JsonParseException.ERROR_UNEXPECTED_CHAR, 'a', 1L);
     }
 
-    private void testLexOk(String input, Object... expectedTokens) throws Exception {
+    private void testLexOk(String input, Yytoken... expectedTokens) throws Exception {
         System.out.println("Lexing: " + input);
         StringReader in = new StringReader(input);
         Yylex lexer = new Yylex(in);
-        for (int i = 0; i < expectedTokens.length; i++) {
-            Object expectedToken = expectedTokens[i];
+        for (Object expectedToken : expectedTokens) {
             Yytoken token = lexer.yylex();
-            assertThat(token.type, equalTo(expectedToken));
-            if (expectedToken.equals(Yytoken.TYPE_VALUE)) {
-                Object expectedValue = expectedTokens[++i];
-                assertThat(token.value, equalTo(expectedValue));
+            assertThat(token.getClass(), equalTo(expectedToken.getClass()));
+            if (expectedToken instanceof Yytoken.YyValueToken) {
+                assertThat(token.value, equalTo(((Yytoken.YyValueToken) expectedToken).value));
             }
         }
     }
 
     private void testLexError(
-            String input, int expectedErrorType, Object unexpectedObject, long expectedPosition)
-            throws Exception {
+            String input, int expectedErrorType, Object unexpectedObject, long expectedPosition) {
         System.out.println("Lexing: " + input);
         StringReader in = new StringReader(input);
         Yylex lexer = new Yylex(in);

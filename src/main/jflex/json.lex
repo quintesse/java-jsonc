@@ -48,22 +48,22 @@ UNESCAPED_CH = [^\"\\]
 
 <YYINITIAL> {
     \"                  { sb.setLength(0); yybegin(STRING); }
-    {num_int}           { return new Yytoken(Yytoken.TYPE_VALUE, Long.valueOf(yytext())); }
-    {num_float}         { return new Yytoken(Yytoken.TYPE_VALUE, Double.valueOf(yytext())); }
-    {boolean}           { return new Yytoken(Yytoken.TYPE_VALUE, Boolean.valueOf(yytext())); }
-    {null}              { return new Yytoken(Yytoken.TYPE_VALUE, null); }
-    "{"                 { return new Yytoken(Yytoken.TYPE_LEFT_BRACE,null); }
-    "}"                 { return new Yytoken(Yytoken.TYPE_RIGHT_BRACE,null); }
-    "["                 { return new Yytoken(Yytoken.TYPE_LEFT_SQUARE,null); }
-    "]"                 { return new Yytoken(Yytoken.TYPE_RIGHT_SQUARE,null); }
-    ","                 { return new Yytoken(Yytoken.TYPE_COMMA,null); }
-    ":"                 { return new Yytoken(Yytoken.TYPE_COLON,null); }
+    {num_int}           { return Yytoken.value(Long.valueOf(yytext())); }
+    {num_float}         { return Yytoken.value(Double.valueOf(yytext())); }
+    {boolean}           { return Yytoken.value(Boolean.valueOf(yytext())); }
+    {null}              { return Yytoken.value(null); }
+    "{"                 { return Yytoken.TYPE_LEFT_BRACE; }
+    "}"                 { return Yytoken.TYPE_RIGHT_BRACE; }
+    "["                 { return Yytoken.TYPE_LEFT_SQUARE; }
+    "]"                 { return Yytoken.TYPE_RIGHT_SQUARE; }
+    ","                 { return Yytoken.TYPE_COMMA; }
+    ":"                 { return Yytoken.TYPE_COLON; }
     {white_space}+      {}
     .                   { throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(0))); }
 }
 
 <STRING> {
-    \"                  { yybegin(YYINITIAL); return new Yytoken(Yytoken.TYPE_VALUE, sb.toString()); }
+    \"                  { yybegin(YYINITIAL); return Yytoken.value(sb.toString()); }
     {UNESCAPED_CH}+     { sb.append(yytext()); }
     \\\"                { sb.append('"'); }
     \\\\                { sb.append('\\'); }

@@ -200,7 +200,7 @@ public class JsonValue {
      * JSONArray.toJSONString(List) instead.
      *
      * @see JsonObject#toJSONString(Map)
-     * @see JsonArray#toJSONString(List)
+     * @see JsonArray#toJSONString(Collection)
      * @param value
      * @return JSON text, or "null" if value is null or it's an NaN or an INF number.
      */

@@ -15,30 +15,32 @@ import org.codejive.jsonc.JsonObject;
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
 public class JsonParser {
-    public static final int S_INIT = 0;
-    public static final int S_IN_FINISHED_VALUE = 1; // string,number,boolean,null,object,array
-    public static final int S_IN_OBJECT = 2;
-    public static final int S_IN_ARRAY = 3;
-    public static final int S_PASSED_PAIR_KEY = 4;
-    public static final int S_IN_PAIR_VALUE = 5;
-    public static final int S_END = 6;
-    public static final int S_IN_ERROR = -1;
+    public enum Status {
+        INIT,
+        IN_FINISHED_VALUE,
+        IN_OBJECT,
+        IN_ARRAY,
+        PASSED_PAIR_KEY,
+        IN_PAIR_VALUE,
+        END,
+        IN_ERROR
+    }
 
-    private LinkedList handlerStatusStack;
-    private Yylex lexer = new Yylex((Reader) null);
+    private final Yylex lexer = new Yylex(null);
+
     private Yytoken token = null;
-    private int status = S_INIT;
+    private LinkedList<Status> handlerStatusStack;
+    private Status status = Status.INIT;
 
-    private int peekStatus(LinkedList statusStack) {
-        if (statusStack.size() == 0) return -1;
-        Integer status = (Integer) statusStack.getFirst();
-        return status.intValue();
+    private Status peekStatus(LinkedList<Status> statusStack) {
+        if (statusStack.isEmpty()) return Status.IN_ERROR;
+        return statusStack.getFirst();
     }
 
     /** Reset the parser to the initial state without resetting the underlying reader. */
     public void reset() {
         token = null;
-        status = S_INIT;
+        status = Status.INIT;
         handlerStatusStack = null;
     }
 
@@ -77,20 +79,20 @@ public class JsonParser {
 
     static class DefaultContainerFactory implements ContainerFactory {
         @Override
-        public Map createObjectContainer() {
+        public Map<String, Object> createObjectContainer() {
             return new JsonObject();
         }
 
         @Override
-        public List creatArrayContainer() {
+        public List<Object> creatArrayContainer() {
             return new JsonArray();
         }
     }
 
     static class DefaultContentHandler implements ContentHandler {
-        private ContainerFactory containerFactory;
+        private final ContainerFactory containerFactory;
 
-        private LinkedList valueStack;
+        private LinkedList<Object> valueStack;
         private Object result;
 
         public DefaultContentHandler(ContainerFactory containerFactory) {
@@ -103,7 +105,7 @@ public class JsonParser {
 
         @Override
         public void startJSON() {
-            valueStack = new LinkedList();
+            valueStack = new LinkedList<>();
             result = null;
         }
 
@@ -168,11 +170,11 @@ public class JsonParser {
                     break;
                 case OBJECT:
                     String key = (String) valueStack.removeFirst();
-                    Map parent = (Map) valueStack.getFirst();
+                    Map<String, Object> parent = (Map<String, Object>) valueStack.getFirst();
                     parent.put(key, element);
                     break;
                 case ARRAY:
-                    List val = (List) valueStack.getFirst();
+                    List<Object> val = (List<Object>) valueStack.getFirst();
                     val.add(element);
                     break;
             }
@@ -181,7 +183,7 @@ public class JsonParser {
 
     private void nextToken() throws JsonParseException, IOException {
         token = lexer.yylex();
-        if (token == null) token = new Yytoken(Yytoken.TYPE_EOF, null);
+        if (token == null) token = Yytoken.TYPE_EOF;
     }
 
     public void parse(String s, ContentHandler contentHandler) throws JsonParseException {
@@ -222,127 +224,109 @@ public class JsonParser {
             throws IOException, JsonParseException {
         if (!isResume) {
             reset(in);
-            handlerStatusStack = new LinkedList();
+            handlerStatusStack = new LinkedList<>();
         } else {
             if (handlerStatusStack == null) {
                 isResume = false;
                 reset(in);
-                handlerStatusStack = new LinkedList();
+                handlerStatusStack = new LinkedList<>();
             }
         }
 
-        LinkedList statusStack = handlerStatusStack;
+        LinkedList<Status> statusStack = handlerStatusStack;
 
         try {
             do {
                 switch (status) {
-                    case S_INIT:
+                    case INIT:
                         contentHandler.startJSON();
                         nextToken();
-                        switch (token.type) {
-                            case Yytoken.TYPE_VALUE:
-                                status = S_IN_FINISHED_VALUE;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.primitive(
-                                        ContentHandler.Status.TOPLEVEL, token.value)) return;
-                                break;
-                            case Yytoken.TYPE_LEFT_BRACE:
-                                status = S_IN_OBJECT;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startObject(ContentHandler.Status.TOPLEVEL))
-                                    return;
-                                break;
-                            case Yytoken.TYPE_LEFT_SQUARE:
-                                status = S_IN_ARRAY;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startArray(ContentHandler.Status.TOPLEVEL))
-                                    return;
-                                break;
-                            default:
-                                status = S_IN_ERROR;
+                        if (token instanceof Yytoken.YyValueToken) {
+                            status = Status.IN_FINISHED_VALUE;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.primitive(
+                                    ContentHandler.Status.TOPLEVEL, token.value)) return;
+                        } else if (Yytoken.TYPE_LEFT_BRACE == token) {
+                            status = Status.IN_OBJECT;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startObject(ContentHandler.Status.TOPLEVEL)) return;
+                        } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
+                            status = Status.IN_ARRAY;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startArray(ContentHandler.Status.TOPLEVEL)) return;
+                        } else {
+                            status = Status.IN_ERROR;
                         } // inner switch
                         break;
 
-                    case S_IN_FINISHED_VALUE:
+                    case IN_FINISHED_VALUE:
                         nextToken();
-                        if (token.type == Yytoken.TYPE_EOF) {
+                        if (token == Yytoken.TYPE_EOF) {
                             contentHandler.endJSON();
-                            status = S_END;
+                            status = Status.END;
                             return;
                         } else {
-                            status = S_IN_ERROR;
+                            status = Status.IN_ERROR;
                             throw new JsonParseException(
                                     getPosition(),
                                     JsonParseException.ERROR_UNEXPECTED_TOKEN,
                                     token);
                         }
 
-                    case S_IN_OBJECT:
+                    case IN_OBJECT:
                         nextToken();
-                        switch (token.type) {
-                            case Yytoken.TYPE_COMMA:
-                                break;
-                            case Yytoken.TYPE_VALUE:
-                                if (token.value instanceof String) {
-                                    String key = (String) token.value;
-                                    status = S_PASSED_PAIR_KEY;
-                                    statusStack.addFirst(new Integer(status));
-                                    if (!contentHandler.startObjectEntry(key)) return;
-                                } else {
-                                    status = S_IN_ERROR;
-                                }
-                                break;
-                            case Yytoken.TYPE_RIGHT_BRACE:
-                                if (statusStack.size() > 1) {
-                                    statusStack.removeFirst();
-                                    status = peekStatus(statusStack);
-                                } else {
-                                    status = S_IN_FINISHED_VALUE;
-                                }
-                                if (!contentHandler.endObject(toHandlerStatus(status))) return;
-                                break;
-                            default:
-                                status = S_IN_ERROR;
-                                break;
+                        if (Yytoken.TYPE_COMMA == token) {
+                        } else if (token instanceof Yytoken.YyValueToken) {
+                            if (token.value instanceof String) {
+                                String key = (String) token.value;
+                                status = Status.PASSED_PAIR_KEY;
+                                statusStack.addFirst(status);
+                                if (!contentHandler.startObjectEntry(key)) return;
+                            } else {
+                                status = Status.IN_ERROR;
+                            }
+                        } else if (Yytoken.TYPE_RIGHT_BRACE == token) {
+                            if (statusStack.size() > 1) {
+                                statusStack.removeFirst();
+                                status = peekStatus(statusStack);
+                            } else {
+                                status = Status.IN_FINISHED_VALUE;
+                            }
+                            if (!contentHandler.endObject(toHandlerStatus(status))) return;
+                        } else {
+                            status = Status.IN_ERROR;
                         } // inner switch
                         break;
 
-                    case S_PASSED_PAIR_KEY:
+                    case PASSED_PAIR_KEY:
                         nextToken();
-                        switch (token.type) {
-                            case Yytoken.TYPE_COLON:
-                                break;
-                            case Yytoken.TYPE_VALUE:
-                                statusStack.removeFirst();
-                                status = peekStatus(statusStack);
-                                if (!contentHandler.primitive(
-                                        ContentHandler.Status.OBJECT, token.value)) return;
-                                if (!contentHandler.endObjectEntry()) return;
-                                break;
-                            case Yytoken.TYPE_LEFT_SQUARE:
-                                statusStack.removeFirst();
-                                statusStack.addFirst(new Integer(S_IN_PAIR_VALUE));
-                                status = S_IN_ARRAY;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startArray(ContentHandler.Status.OBJECT))
-                                    return;
-                                break;
-                            case Yytoken.TYPE_LEFT_BRACE:
-                                statusStack.removeFirst();
-                                statusStack.addFirst(new Integer(S_IN_PAIR_VALUE));
-                                status = S_IN_OBJECT;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startObject(ContentHandler.Status.OBJECT))
-                                    return;
-                                break;
-                            default:
-                                status = S_IN_ERROR;
+                        if (Yytoken.TYPE_COLON == token) {
+                        } else if (token instanceof Yytoken.YyValueToken) {
+                            statusStack.removeFirst();
+                            status = peekStatus(statusStack);
+                            if (!contentHandler.primitive(
+                                    ContentHandler.Status.OBJECT, token.value)) return;
+                            if (!contentHandler.endObjectEntry()) return;
+                        } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
+                            statusStack.removeFirst();
+                            statusStack.addFirst(Status.IN_PAIR_VALUE);
+                            status = Status.IN_ARRAY;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startArray(ContentHandler.Status.OBJECT)) return;
+                        } else if (Yytoken.TYPE_LEFT_BRACE == token) {
+                            statusStack.removeFirst();
+                            statusStack.addFirst(Status.IN_PAIR_VALUE);
+                            status = Status.IN_OBJECT;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startObject(ContentHandler.Status.OBJECT)) return;
+                        } else {
+                            status = Status.IN_ERROR;
                         }
                         break;
 
-                    case S_IN_PAIR_VALUE:
+                    case IN_PAIR_VALUE:
                         /*
-                         * S_IN_PAIR_VALUE is just a marker to indicate the end of an object entry, it
+                         * Status.IN_PAIR_VALUE is just a marker to indicate the end of an object entry, it
                          * doesn't proccess any token, therefore delay consuming token until next round.
                          */
                         statusStack.removeFirst();
@@ -350,75 +334,61 @@ public class JsonParser {
                         if (!contentHandler.endObjectEntry()) return;
                         break;
 
-                    case S_IN_ARRAY:
+                    case IN_ARRAY:
                         nextToken();
-                        switch (token.type) {
-                            case Yytoken.TYPE_COMMA:
-                                break;
-                            case Yytoken.TYPE_VALUE:
-                                if (!contentHandler.primitive(
-                                        ContentHandler.Status.ARRAY, token.value)) return;
-                                break;
-                            case Yytoken.TYPE_RIGHT_SQUARE:
-                                if (statusStack.size() > 1) {
-                                    statusStack.removeFirst();
-                                    status = peekStatus(statusStack);
-                                } else {
-                                    status = S_IN_FINISHED_VALUE;
-                                }
-                                if (!contentHandler.endArray(toHandlerStatus(status))) return;
-                                break;
-                            case Yytoken.TYPE_LEFT_BRACE:
-                                status = S_IN_OBJECT;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startObject(ContentHandler.Status.ARRAY))
-                                    return;
-                                break;
-                            case Yytoken.TYPE_LEFT_SQUARE:
-                                status = S_IN_ARRAY;
-                                statusStack.addFirst(new Integer(status));
-                                if (!contentHandler.startArray(ContentHandler.Status.ARRAY)) return;
-                                break;
-                            default:
-                                status = S_IN_ERROR;
+                        if (Yytoken.TYPE_COMMA == token) {
+                        } else if (token instanceof Yytoken.YyValueToken) {
+                            if (!contentHandler.primitive(ContentHandler.Status.ARRAY, token.value))
+                                return;
+                        } else if (Yytoken.TYPE_RIGHT_SQUARE == token) {
+                            if (statusStack.size() > 1) {
+                                statusStack.removeFirst();
+                                status = peekStatus(statusStack);
+                            } else {
+                                status = Status.IN_FINISHED_VALUE;
+                            }
+                            if (!contentHandler.endArray(toHandlerStatus(status))) return;
+                        } else if (Yytoken.TYPE_LEFT_BRACE == token) {
+                            status = Status.IN_OBJECT;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startObject(ContentHandler.Status.ARRAY)) return;
+                        } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
+                            status = Status.IN_ARRAY;
+                            statusStack.addFirst(status);
+                            if (!contentHandler.startArray(ContentHandler.Status.ARRAY)) return;
+                        } else {
+                            status = Status.IN_ERROR;
                         } // inner switch
                         break;
 
-                    case S_END:
+                    case END:
                         return;
 
-                    case S_IN_ERROR:
+                    case IN_ERROR:
                         throw new JsonParseException(
                                 getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
                 } // switch
-                if (status == S_IN_ERROR) {
+                if (status == Status.IN_ERROR) {
                     throw new JsonParseException(
                             getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
                 }
-            } while (token.type != Yytoken.TYPE_EOF);
-        } catch (IOException ie) {
-            status = S_IN_ERROR;
+            } while (token != Yytoken.TYPE_EOF);
+        } catch (IOException | JsonParseException | RuntimeException | Error ie) {
+            status = Status.IN_ERROR;
             throw ie;
-        } catch (JsonParseException pe) {
-            status = S_IN_ERROR;
-            throw pe;
-        } catch (RuntimeException re) {
-            status = S_IN_ERROR;
-            throw re;
-        } catch (Error e) {
-            status = S_IN_ERROR;
-            throw e;
         }
 
-        status = S_IN_ERROR;
+        status = Status.IN_ERROR;
         throw new JsonParseException(
                 getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
     }
 
-    private ContentHandler.Status toHandlerStatus(int status) {
-        if (status == S_IN_OBJECT || status == S_PASSED_PAIR_KEY || status == S_IN_PAIR_VALUE) {
+    private ContentHandler.Status toHandlerStatus(Status status) {
+        if (status == Status.IN_OBJECT
+                || status == Status.PASSED_PAIR_KEY
+                || status == Status.IN_PAIR_VALUE) {
             return ContentHandler.Status.OBJECT;
-        } else if (status == S_IN_ARRAY) {
+        } else if (status == Status.IN_ARRAY) {
             return ContentHandler.Status.ARRAY;
         } else {
             return ContentHandler.Status.TOPLEVEL;

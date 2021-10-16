@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JsonObject extends HashMap implements Map, JsonAware, JsonStreamAware {
+public class JsonObject extends HashMap<String, Object> implements JsonAware, JsonStreamAware {
 
     private static final long serialVersionUID = -503443796854799292L;
 
@@ -26,7 +26,7 @@ public class JsonObject extends HashMap implements Map, JsonAware, JsonStreamAwa
      *
      * @param map
      */
-    public JsonObject(Map map) {
+    public JsonObject(Map<String, Object> map) {
         super(map);
     }
 
@@ -39,20 +39,20 @@ public class JsonObject extends HashMap implements Map, JsonAware, JsonStreamAwa
      * @param map
      * @param out
      */
-    public static void writeJSONString(Map map, Writer out) throws IOException {
+    public static void writeJSONString(Map<String, Object> map, Writer out) throws IOException {
         if (map == null) {
             out.write("null");
             return;
         }
 
         boolean first = true;
-        Iterator iter = map.entrySet().iterator();
+        Iterator<Entry<String, Object>> iter = map.entrySet().iterator();
 
         out.write('{');
         while (iter.hasNext()) {
             if (first) first = false;
             else out.write(',');
-            Map.Entry entry = (Map.Entry) iter.next();
+            Entry<String, Object> entry = iter.next();
             out.write('\"');
             out.write(escape(String.valueOf(entry.getKey())));
             out.write('\"');
@@ -74,7 +74,7 @@ public class JsonObject extends HashMap implements Map, JsonAware, JsonStreamAwa
      * @param map
      * @return JSON text, or "null" if map is null.
      */
-    public static String toJSONString(Map map) {
+    public static String toJSONString(Map<String, Object> map) {
         final StringWriter writer = new StringWriter();
 
         try {

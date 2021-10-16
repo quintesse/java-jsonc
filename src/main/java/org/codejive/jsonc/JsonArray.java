@@ -12,7 +12,7 @@ import java.util.Iterator;
  *
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JsonArray extends ArrayList implements JsonAware, JsonStreamAware {
+public class JsonArray extends ArrayList<Object> implements JsonAware, JsonStreamAware {
     private static final long serialVersionUID = 3957988303675231981L;
 
     /** Constructs an empty JSONArray. */
@@ -39,14 +39,15 @@ public class JsonArray extends ArrayList implements JsonAware, JsonStreamAware {
      * @param collection
      * @param out
      */
-    public static void writeJSONString(Collection collection, Writer out) throws IOException {
+    public static void writeJSONString(Collection<Object> collection, Writer out)
+            throws IOException {
         if (collection == null) {
             out.write("null");
             return;
         }
 
         boolean first = true;
-        Iterator iter = collection.iterator();
+        Iterator<Object> iter = collection.iterator();
 
         out.write('[');
         while (iter.hasNext()) {
@@ -76,7 +77,7 @@ public class JsonArray extends ArrayList implements JsonAware, JsonStreamAware {
      * @param collection
      * @return JSON text, or "null" if list is null.
      */
-    public static String toJSONString(Collection collection) {
+    public static String toJSONString(Collection<Object> collection) {
         final StringWriter writer = new StringWriter();
 
         try {
