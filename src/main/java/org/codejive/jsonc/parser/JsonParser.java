@@ -251,7 +251,7 @@ public class JsonParser {
                     case INIT:
                         contentHandler.startJSON();
                         nextToken();
-                        if (token instanceof Yytoken.YyValueToken) {
+                        if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (config.allowToplevelValues()) {
                                 status = Status.IN_FINISHED_VALUE;
                                 statusStack.addFirst(status);
@@ -288,7 +288,7 @@ public class JsonParser {
                     case IN_OBJECT:
                         nextToken();
                         if (Yytoken.TYPE_COMMA == token) {
-                        } else if (token instanceof Yytoken.YyValueToken) {
+                        } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (token.value instanceof String) {
                                 String key = (String) token.value;
                                 status = Status.PASSED_PAIR_KEY;
@@ -313,7 +313,7 @@ public class JsonParser {
                     case PASSED_PAIR_KEY:
                         nextToken();
                         if (Yytoken.TYPE_COLON == token) {
-                        } else if (token instanceof Yytoken.YyValueToken) {
+                        } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             statusStack.removeFirst();
                             status = peekStatus(statusStack);
                             if (!contentHandler.primitive(
@@ -349,7 +349,7 @@ public class JsonParser {
                     case IN_ARRAY:
                         nextToken();
                         if (Yytoken.TYPE_COMMA == token) {
-                        } else if (token instanceof Yytoken.YyValueToken) {
+                        } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (!contentHandler.primitive(ContentHandler.Status.ARRAY, token.value))
                                 return;
                         } else if (Yytoken.TYPE_RIGHT_SQUARE == token) {

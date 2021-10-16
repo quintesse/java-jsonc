@@ -48,10 +48,10 @@ UNESCAPED_CH = [^\"\\]
 
 <YYINITIAL> {
     \"                  { sb.setLength(0); yybegin(STRING); }
-    {num_int}           { return Yytoken.value(Long.valueOf(yytext())); }
-    {num_float}         { return Yytoken.value(Double.valueOf(yytext())); }
-    {boolean}           { return Yytoken.value(Boolean.valueOf(yytext())); }
-    {null}              { return Yytoken.value(null); }
+    {num_int}           { return Yytoken.primitive(Long.valueOf(yytext())); }
+    {num_float}         { return Yytoken.primitive(Double.valueOf(yytext())); }
+    {boolean}           { return Yytoken.primitive(Boolean.valueOf(yytext())); }
+    {null}              { return Yytoken.primitive(null); }
     "{"                 { return Yytoken.TYPE_LEFT_BRACE; }
     "}"                 { return Yytoken.TYPE_RIGHT_BRACE; }
     "["                 { return Yytoken.TYPE_LEFT_SQUARE; }
@@ -63,7 +63,7 @@ UNESCAPED_CH = [^\"\\]
 }
 
 <STRING> {
-    \"                  { yybegin(YYINITIAL); return Yytoken.value(sb.toString()); }
+    \"                  { yybegin(YYINITIAL); return Yytoken.primitive(sb.toString()); }
     {UNESCAPED_CH}+     { sb.append(yytext()); }
     \\\"                { sb.append('"'); }
     \\\\                { sb.append('\\'); }

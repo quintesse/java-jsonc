@@ -15,14 +15,14 @@ public class Yytoken {
     ; // end of file
 
     // JSON primitive value: string,number,boolean,null
-    static class YyValueToken extends Yytoken {
-        private YyValueToken(Object value) {
+    static class YyPrimitiveToken extends Yytoken {
+        private YyPrimitiveToken(Object value) {
             super(value);
         }
     }
 
-    public static YyValueToken value(Object value) {
-        return new YyValueToken(value);
+    public static YyPrimitiveToken primitive(Object value) {
+        return new YyPrimitiveToken(value);
     }
 
     public final Object value;
