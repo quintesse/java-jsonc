@@ -311,9 +311,12 @@ public class JsonParser {
                         break;
 
                     case PASSED_PAIR_KEY:
-                        if (Yytoken.TYPE_COLON == token) {
-                            nextToken();
-                        } else if (token instanceof Yytoken.YyPrimitiveToken) {
+                        if (Yytoken.TYPE_COLON != token) {
+                            // Missing colon
+                            status = Status.IN_ERROR;
+                        }
+                        nextToken();
+                        if (token instanceof Yytoken.YyPrimitiveToken) {
                             statusStack.removeFirst();
                             status = peekStatus(statusStack);
                             if (!contentHandler.primitive(
