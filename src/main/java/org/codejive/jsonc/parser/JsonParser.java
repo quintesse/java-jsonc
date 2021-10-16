@@ -272,6 +272,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.TOPLEVEL)) return;
                             nextToken();
+                            if (handleMissingArrayValue(contentHandler)) return;
                         } else {
                             status = Status.IN_ERROR;
                         } // inner switch
@@ -326,6 +327,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.OBJECT)) return;
                             nextToken();
+                            if (handleMissingArrayValue(contentHandler)) return;
                         } else if (Yytoken.TYPE_LEFT_BRACE == token) {
                             statusStack.removeFirst();
                             statusStack.addFirst(Status.IN_PAIR_VALUE);
@@ -351,6 +353,7 @@ public class JsonParser {
                     case IN_ARRAY:
                         if (Yytoken.TYPE_COMMA == token) {
                             nextToken();
+                            if (handleMissingArrayValue(contentHandler)) return;
                             handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (!contentHandler.primitive(ContentHandler.Status.ARRAY, token.value))
@@ -375,6 +378,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startArray(ContentHandler.Status.ARRAY)) return;
                             nextToken();
+                            if (handleMissingArrayValue(contentHandler)) return;
                         } else {
                             status = Status.IN_ERROR;
                         } // inner switch
@@ -403,6 +407,20 @@ public class JsonParser {
 
         status = Status.IN_ERROR;
         throw JsonParseException.unexpectedToken(getPosition(), token);
+    }
+
+    private boolean handleMissingArrayValue(ContentHandler contentHandler) throws JsonParseException, IOException {
+        if (token == Yytoken.TYPE_COMMA) {
+            if (config.allowMissingArrayValues()) {
+                // Missing values are allowed, so we add a `null`
+                if (!contentHandler.primitive(ContentHandler.Status.ARRAY, null))
+                    return true;
+            } else {
+                // Missing values are not allowed
+                status = Status.IN_ERROR;
+            }
+        }
+        return false;
     }
 
     private void handleTrailingSeparator() {

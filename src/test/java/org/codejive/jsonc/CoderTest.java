@@ -61,8 +61,11 @@ public class CoderTest {
     @Test
     public void testDecodeMissingArrayValue() throws Exception {
         String s = "[5,,2]";
-        Object obj = JsonValue.parseWithException(s);
-        assertEquals("[5,2]", obj.toString());
+        Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
+        assertEquals("[5,null,2]", obj.toString());
+        assertThrows(JsonParseException.class, () -> {
+            (new JsonParser(JsonParserConfig.strictJson())).parse(s);
+        });
     }
 
     @Test

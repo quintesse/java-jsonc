@@ -3,6 +3,7 @@ package org.codejive.jsonc.parser;
 public class JsonParserConfig {
     private boolean allowToplevelValues;
     private boolean allowTrailingSeparator;
+    private boolean allowMissingArrayValues;
 
     public static JsonParserConfig defaults() {
         return new JsonParserConfig()
@@ -17,7 +18,8 @@ public class JsonParserConfig {
     public static JsonParserConfig lenientJson() {
         return new JsonParserConfig()
                 .allowToplevelValues(true)
-                .allowTrailingSeparator(true);
+                .allowTrailingSeparator(true)
+                .allowMissingArrayValues(true);
     }
 
     public boolean allowToplevelValues() {
@@ -38,4 +40,12 @@ public class JsonParserConfig {
         return this;
     }
 
+    public boolean allowMissingArrayValues() {
+        return allowMissingArrayValues;
+    }
+
+    public JsonParserConfig allowMissingArrayValues(boolean allowMissingValues) {
+        this.allowMissingArrayValues = allowMissingValues;
+        return this;
+    }
 }
