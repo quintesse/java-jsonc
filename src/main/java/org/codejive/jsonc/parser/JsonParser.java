@@ -252,10 +252,15 @@ public class JsonParser {
                         contentHandler.startJSON();
                         nextToken();
                         if (token instanceof Yytoken.YyValueToken) {
-                            status = Status.IN_FINISHED_VALUE;
-                            statusStack.addFirst(status);
-                            if (!contentHandler.primitive(
-                                    ContentHandler.Status.TOPLEVEL, token.value)) return;
+                            if (config.allowToplevelValues()) {
+                                status = Status.IN_FINISHED_VALUE;
+                                statusStack.addFirst(status);
+                                if (!contentHandler.primitive(
+                                        ContentHandler.Status.TOPLEVEL, token.value)) return;
+                            } else {
+                                status = Status.IN_ERROR;
+                                throw JsonParseException.unexpectedToken(getPosition(), token);
+                            }
                         } else if (Yytoken.TYPE_LEFT_BRACE == token) {
                             status = Status.IN_OBJECT;
                             statusStack.addFirst(status);
