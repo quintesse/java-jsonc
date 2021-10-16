@@ -13,8 +13,8 @@ private char unicodeChar() throws JsonParseException {
     try {
         int hex = Integer.parseInt(yytext().substring(2), 16);
         return (char)hex;
-    } catch(Exception e){
-        throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_EXCEPTION, e);
+    } catch (Exception e){
+        throw JsonParseException.error(yychar, e);
     }
 }
 %}
@@ -59,7 +59,7 @@ UNESCAPED_CH = [^\"\\]
     ","                 { return Yytoken.TYPE_COMMA; }
     ":"                 { return Yytoken.TYPE_COLON; }
     {white_space}+      {}
-    .                   { throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(0))); }
+    .                   { throw JsonParseException.unexpectedChar(yychar, yycharat(0)); }
 }
 
 <STRING> {
@@ -74,5 +74,5 @@ UNESCAPED_CH = [^\"\\]
     \\r                 { sb.append('\r'); }
     \\t                 { sb.append('\t'); }
     \\u{hex_digit}{4}   { sb.append(unicodeChar()); }
-    \\.                 { throw new JsonParseException(yychar, JsonParseException.ERROR_UNEXPECTED_CHAR, new Character(yycharat(1))); }
+    \\.                 { throw JsonParseException.unexpectedChar(yychar, yycharat(1)); }
 }

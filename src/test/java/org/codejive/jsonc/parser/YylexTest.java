@@ -1,6 +1,7 @@
 package org.codejive.jsonc.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -93,7 +94,7 @@ public class YylexTest {
             err = e;
             System.out.println("expected error:" + err);
             assertThat(e.getErrorType(), equalTo(expectedErrorType));
-            assertThat(e.getUnexpectedObject(), equalTo(unexpectedObject));
+            assertThat(e.getMessage(), containsString(unexpectedObject.toString()));
             assertThat(e.getPosition(), equalTo(expectedPosition));
         } catch (IOException ie) {
             fail();

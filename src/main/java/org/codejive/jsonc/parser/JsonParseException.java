@@ -6,36 +6,42 @@ package org.codejive.jsonc.parser;
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
 public class JsonParseException extends Exception {
-    private static final long serialVersionUID = -7880698968187728547L;
-
     public static final int ERROR_UNEXPECTED_CHAR = 0;
     public static final int ERROR_UNEXPECTED_TOKEN = 1;
     public static final int ERROR_UNEXPECTED_EXCEPTION = 2;
 
     private int errorType;
-    private Object unexpectedObject;
     private long position;
 
-    public JsonParseException(int errorType) {
-        this(-1, errorType, null);
+    public static JsonParseException unexpectedChar(long position, char unexpected) {
+        return new JsonParseException(
+                position,
+                ERROR_UNEXPECTED_CHAR,
+                "Unexpected character '" + unexpected + "' @" + position,
+                null);
     }
 
-    public JsonParseException(int errorType, Object unexpectedObject) {
-        this(-1, errorType, unexpectedObject);
+    public static JsonParseException unexpectedToken(long position, Yytoken unexpected) {
+        return new JsonParseException(
+                position,
+                ERROR_UNEXPECTED_TOKEN,
+                "Unexpected token '" + unexpected + "' @" + position,
+                null);
     }
 
-    public JsonParseException(long position, int errorType, Object unexpectedObject) {
+    public static JsonParseException error(long position, Exception cause) {
+        return new JsonParseException(
+                position, ERROR_UNEXPECTED_EXCEPTION, "Error @" + position, cause);
+    }
+
+    public JsonParseException(long position, int errorType, String message, Exception cause) {
+        super(message, cause);
         this.position = position;
         this.errorType = errorType;
-        this.unexpectedObject = unexpectedObject;
     }
 
     public int getErrorType() {
         return errorType;
-    }
-
-    public void setErrorType(int errorType) {
-        this.errorType = errorType;
     }
 
     /**
@@ -44,54 +50,5 @@ public class JsonParseException extends Exception {
      */
     public long getPosition() {
         return position;
-    }
-
-    public void setPosition(long position) {
-        this.position = position;
-    }
-
-    /**
-     * @see Yytoken
-     * @return One of the following base on the value of errorType: ERROR_UNEXPECTED_CHAR
-     *     java.lang.Character ERROR_UNEXPECTED_TOKEN org.json.simple.parser.Yytoken
-     *     ERROR_UNEXPECTED_EXCEPTION java.lang.Exception
-     */
-    public Object getUnexpectedObject() {
-        return unexpectedObject;
-    }
-
-    public void setUnexpectedObject(Object unexpectedObject) {
-        this.unexpectedObject = unexpectedObject;
-    }
-
-    public String getMessage() {
-        StringBuffer sb = new StringBuffer();
-
-        switch (errorType) {
-            case ERROR_UNEXPECTED_CHAR:
-                sb.append("Unexpected character (")
-                        .append(unexpectedObject)
-                        .append(") at position ")
-                        .append(position)
-                        .append(".");
-                break;
-            case ERROR_UNEXPECTED_TOKEN:
-                sb.append("Unexpected token ")
-                        .append(unexpectedObject)
-                        .append(" at position ")
-                        .append(position)
-                        .append(".");
-                break;
-            case ERROR_UNEXPECTED_EXCEPTION:
-                sb.append("Unexpected exception at position ")
-                        .append(position)
-                        .append(": ")
-                        .append(unexpectedObject);
-                break;
-            default:
-                sb.append("Unkown error at position ").append(position).append(".");
-                break;
-        }
-        return sb.toString();
     }
 }

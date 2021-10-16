@@ -199,7 +199,7 @@ public class JsonParser {
             /*
              * Actually it will never happen.
              */
-            throw new JsonParseException(-1, JsonParseException.ERROR_UNEXPECTED_EXCEPTION, ie);
+            throw JsonParseException.error(-1, ie);
         }
     }
 
@@ -267,10 +267,7 @@ public class JsonParser {
                             return;
                         } else {
                             status = Status.IN_ERROR;
-                            throw new JsonParseException(
-                                    getPosition(),
-                                    JsonParseException.ERROR_UNEXPECTED_TOKEN,
-                                    token);
+                            throw JsonParseException.unexpectedToken(getPosition(), token);
                         }
 
                     case IN_OBJECT:
@@ -327,7 +324,7 @@ public class JsonParser {
                     case IN_PAIR_VALUE:
                         /*
                          * Status.IN_PAIR_VALUE is just a marker to indicate the end of an object entry, it
-                         * doesn't proccess any token, therefore delay consuming token until next round.
+                         * doesn't process any token, therefore delay consuming token until next round.
                          */
                         statusStack.removeFirst();
                         status = peekStatus(statusStack);
@@ -365,12 +362,10 @@ public class JsonParser {
                         return;
 
                     case IN_ERROR:
-                        throw new JsonParseException(
-                                getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
+                        throw JsonParseException.unexpectedToken(getPosition(), token);
                 } // switch
                 if (status == Status.IN_ERROR) {
-                    throw new JsonParseException(
-                            getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
+                    throw JsonParseException.unexpectedToken(getPosition(), token);
                 }
             } while (token != Yytoken.TYPE_EOF);
         } catch (IOException | JsonParseException | RuntimeException | Error ie) {
@@ -379,8 +374,7 @@ public class JsonParser {
         }
 
         status = Status.IN_ERROR;
-        throw new JsonParseException(
-                getPosition(), JsonParseException.ERROR_UNEXPECTED_TOKEN, token);
+        throw JsonParseException.unexpectedToken(getPosition(), token);
     }
 
     private ContentHandler.Status toHandlerStatus(Status status) {
