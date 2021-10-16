@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 public class CoderTest {
 
     @Test
-    public void testDecode() throws Exception {
+    public void testDecodeNested() throws Exception {
         System.out.println("=======decode=======");
 
         String s = "[0,{\"1\":{\"2\":{\"3\":{\"4\":[5,{\"6\":7}]}}}}]";
@@ -37,68 +37,83 @@ public class CoderTest {
         System.out.println("======field \"1\"==========");
         System.out.println(obj2.get("1"));
         assertEquals("{\"2\":{\"3\":{\"4\":[5,{\"6\":7}]}}}", obj2.get("1").toString());
+    }
 
-        s = "{}";
-        obj = JsonValue.parse(s);
+    @Test
+    public void testDecodeEmpty() throws Exception {
+        String s = "{}";
+        Object obj = JsonValue.parseWithException(s);
         assertEquals("{}", obj.toString());
+    }
 
-        s = "[5,]";
-        obj = JsonValue.parse(s);
+    @Test
+    public void testDecodeExtraArrayComma() throws Exception {
+        String s = "[5,]";
+        Object obj = JsonValue.parseWithException(s);
         assertEquals("[5]", obj.toString());
+    }
 
-        s = "[5,,2]";
-        obj = JsonValue.parse(s);
+    @Test
+    public void testDecodeMissingArrayValue() throws Exception {
+        String s = "[5,,2]";
+        Object obj = JsonValue.parseWithException(s);
         assertEquals("[5,2]", obj.toString());
+    }
 
-        s = "[\"hello\\bworld\\\"abc\\tdef\\\\ghi\\rjkl\\n123\\u4e2d\"]";
-        obj = JsonValue.parse(s);
+    @Test
+    public void testDecodeEscapeSequences() throws Exception {
+        String s = "[\"hello\\bworld\\\"abc\\tdef\\\\ghi\\rjkl\\n123\\u4e2d\"]";
+        Object obj = JsonValue.parseWithException(s);
         assertEquals("hello\bworld\"abc\tdef\\ghi\rjkl\n123中", ((List) obj).get(0).toString());
+    }
 
-        JsonParser parser = new JsonParser();
-        s = "{\"name\":";
+    @Test
+    public void testDecodeIncompleteObject() {
         try {
-            obj = parser.parse(s);
+            String s = "{\"name\":";
+            Object obj = JsonValue.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(8L, pe.getPosition());
         }
+    }
 
-        s = "{\"name\":}";
+    @Test
+    public void testDecodeMissingOjectValue() {
         try {
-            obj = parser.parse(s);
+            String s = "{\"name\":}";
+            Object obj = JsonValue.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(8L, pe.getPosition());
         }
+    }
 
-        s = "{\"name";
+    @Test
+    public void testDecodeIncompleteObject2() {
         try {
-            obj = parser.parse(s);
+            String s = "{\"name";
+            Object obj = JsonValue.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(6L, pe.getPosition());
         }
+    }
 
-        s = "[[null, 123.45, \"a \tb c\"}, true]";
+    @Test
+    public void testDecodeMismatchedBrackets() {
         try {
-            parser.parse(s);
+            String s = "[[null, 123.45, \"a \tb c\"}, true]";
+            Object obj = JsonValue.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(24L, pe.getPosition());
-            System.out.println("Error at character position: " + pe.getPosition());
-            switch (pe.getErrorType()) {
-                case JsonParseException.ERROR_UNEXPECTED_TOKEN:
-                    System.out.println("Unexpected token: " + pe.getUnexpectedObject());
-                    break;
-                case JsonParseException.ERROR_UNEXPECTED_CHAR:
-                    System.out.println("Unexpected character: " + pe.getUnexpectedObject());
-                    break;
-                case JsonParseException.ERROR_UNEXPECTED_EXCEPTION:
-                    ((Exception) pe.getUnexpectedObject()).printStackTrace();
-                    break;
-            }
+            System.out.println(pe.getMessage());
         }
+    }
 
-        s = "{\"first\": 123, \"second\": [4, 5, 6], \"third\": 789}";
+    @Test
+    public void testDecodeWithContainerFactory() throws Exception {
+        String s = "{\"first\": 123, \"second\": [4, 5, 6], \"third\": 789}";
         ContainerFactory containerFactory =
                 new ContainerFactory() {
                     public List creatArrayContainer() {
@@ -111,6 +126,7 @@ public class CoderTest {
                 };
 
         try {
+            JsonParser parser = new JsonParser();
             Map json = (Map) parser.parse(s, containerFactory);
             Iterator iter = json.entrySet().iterator();
             System.out.println("==iterate result==");
@@ -127,8 +143,12 @@ public class CoderTest {
         } catch (JsonParseException pe) {
             pe.printStackTrace();
         }
+    }
 
-        s = "{\"first\": 123, \"second\": [{\"s1\":{\"s11\":\"v11\"}}, 4, 5, 6], \"third\": 789}";
+    @Test
+    public void testDecodeWithContentHandler() throws Exception {
+        String s =
+                "{\"first\": 123, \"second\": [{\"s1\":{\"s11\":\"v11\"}}, 4, 5, 6], \"third\": 789}";
         ContentHandler myHandler =
                 new ContentHandler() {
 
@@ -177,11 +197,15 @@ public class CoderTest {
                     }
                 };
         try {
+            JsonParser parser = new JsonParser();
             parser.parse(s, myHandler);
         } catch (JsonParseException pe) {
             pe.printStackTrace();
         }
+    }
 
+    @Test
+    public void testDecodeWithKeyFinder() throws Exception {
         class KeyFinder implements ContentHandler {
             private Object value;
             private boolean found = false;
@@ -258,14 +282,14 @@ public class CoderTest {
         }
         ;
 
-        s =
-                "{\"first\": 123, \"second\": [{\"k1\":{\"id\":\"id1\"}}, 4, 5, 6, {\"id\": 123}], \"third\": 789, \"id\": null}";
-        parser.reset();
         KeyFinder keyFinder = new KeyFinder();
         keyFinder.setMatchKey("id");
         int i = 0;
         try {
             while (!keyFinder.isEnd()) {
+                JsonParser parser = new JsonParser();
+                String s =
+                        "{\"first\": 123, \"second\": [{\"k1\":{\"id\":\"id1\"}}, 4, 5, 6, {\"id\": 123}], \"third\": 789, \"id\": null}";
                 parser.parse(s, keyFinder, true);
                 if (keyFinder.isFound()) {
                     i++;
