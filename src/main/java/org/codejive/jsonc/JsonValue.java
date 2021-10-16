@@ -121,16 +121,6 @@ public class JsonValue {
             return;
         }
 
-        if ((value instanceof JsonStreamAware)) {
-            ((JsonStreamAware) value).writeJSONString(out);
-            return;
-        }
-
-        if ((value instanceof JsonAware)) {
-            out.write(((JsonAware) value).toJSONString());
-            return;
-        }
-
         if (value instanceof Map) {
             JsonObject.writeJSONString((Map) value, out);
             return;
