@@ -53,9 +53,11 @@ public class CoderTest {
         String s = "[5,]";
         Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
         assertEquals("[5]", obj.toString());
-        assertThrows(JsonParseException.class, () -> {
-            (new JsonParser(JsonParserConfig.strictJson())).parse(s);
-        });
+        assertThrows(
+                JsonParseException.class,
+                () -> {
+                    (new JsonParser(JsonParserConfig.strictJson())).parse(s);
+                });
     }
 
     @Test
@@ -63,9 +65,11 @@ public class CoderTest {
         String s = "[5,,2]";
         Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
         assertEquals("[5,null,2]", obj.toString());
-        assertThrows(JsonParseException.class, () -> {
-            (new JsonParser(JsonParserConfig.strictJson())).parse(s);
-        });
+        assertThrows(
+                JsonParseException.class,
+                () -> {
+                    (new JsonParser(JsonParserConfig.strictJson())).parse(s);
+                });
     }
 
     @Test

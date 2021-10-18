@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import org.codejive.jsonc.JsonArray;
 import org.codejive.jsonc.JsonObject;
 
@@ -291,12 +290,15 @@ public class JsonParser {
                             handleMissingObjectKeyValue();
                             handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
-                            if (config.allowObjectPrimitiveKeys() || token.value instanceof String) {
-                                String key = Objects.toString(token.value);
+                            if (config.allowObjectPrimitiveKeys()
+                                    || token.value instanceof String) {
+                                Object tokenValue = token.value;
+                                String key = Objects.toString(tokenValue);
                                 status = Status.PASSED_PAIR_KEY;
                                 statusStack.addFirst(status);
                                 if (!contentHandler.startObjectEntry(key)) return;
                                 nextToken();
+                                handleMissingObjectValue(contentHandler, tokenValue);
                             } else {
                                 status = Status.IN_ERROR;
                             }
@@ -315,10 +317,6 @@ public class JsonParser {
                         break;
 
                     case PASSED_PAIR_KEY:
-                        if (Yytoken.TYPE_COLON != token) {
-                            // Missing colon
-                            status = Status.IN_ERROR;
-                        }
                         nextToken();
                         if (token instanceof Yytoken.YyPrimitiveToken) {
                             statusStack.removeFirst();
@@ -418,12 +416,12 @@ public class JsonParser {
         throw JsonParseException.unexpectedToken(getPosition(), token);
     }
 
-    private boolean handleMissingArrayValue(ContentHandler contentHandler) throws JsonParseException, IOException {
+    private boolean handleMissingArrayValue(ContentHandler contentHandler)
+            throws JsonParseException, IOException {
         if (token == Yytoken.TYPE_COMMA) {
             if (config.allowMissingArrayValues()) {
                 // Missing values are allowed, so we add a `null`
-                if (!contentHandler.primitive(ContentHandler.Status.ARRAY, null))
-                    return true;
+                if (!contentHandler.primitive(ContentHandler.Status.ARRAY, null)) return true;
             } else {
                 // Missing values are not allowed
                 status = Status.IN_ERROR;
@@ -436,6 +434,20 @@ public class JsonParser {
         if (token == Yytoken.TYPE_COMMA) {
             // Missing key:values are not allowed
             status = Status.IN_ERROR;
+        }
+        return false;
+    }
+
+    private boolean handleMissingObjectValue(ContentHandler contentHandler, Object keyValue)
+            throws JsonParseException, IOException {
+        if (token != Yytoken.TYPE_COLON) {
+            if (config.allowObjectValuesAsKeys()) {
+                // Missing values are allowed, so we add a `null`
+                if (!contentHandler.primitive(ContentHandler.Status.ARRAY, keyValue)) return true;
+            } else {
+                // Missing colon
+                status = Status.IN_ERROR;
+            }
         }
         return false;
     }
