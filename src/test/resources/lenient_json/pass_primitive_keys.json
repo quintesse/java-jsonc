@@ -1,0 +1,6 @@
+{
+  "abc": "string",
+  42: "number",
+  true: "boolean",
+  null: "null"
+}

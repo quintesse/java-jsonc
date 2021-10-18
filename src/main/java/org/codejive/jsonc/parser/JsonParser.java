@@ -291,7 +291,7 @@ public class JsonParser {
                             handleMissingObjectKeyValue();
                             handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
-                            if (token.value instanceof String) {
+                            if (config.allowObjectPrimitiveKeys() || token.value instanceof String) {
                                 String key = Objects.toString(token.value);
                                 status = Status.PASSED_PAIR_KEY;
                                 statusStack.addFirst(status);

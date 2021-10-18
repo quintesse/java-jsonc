@@ -4,11 +4,13 @@ public class JsonParserConfig {
     private boolean allowToplevelValues;
     private boolean allowTrailingSeparator;
     private boolean allowMissingArrayValues;
+    private boolean allowObjectPrimitiveKeys;
 
     public static JsonParserConfig defaults() {
         return new JsonParserConfig()
                 .allowToplevelValues(true)
-                .allowTrailingSeparator(true);
+                .allowTrailingSeparator(true)
+                .allowObjectPrimitiveKeys(true);
     }
 
     public static JsonParserConfig strictJson() {
@@ -19,7 +21,8 @@ public class JsonParserConfig {
         return new JsonParserConfig()
                 .allowToplevelValues(true)
                 .allowTrailingSeparator(true)
-                .allowMissingArrayValues(true);
+                .allowMissingArrayValues(true)
+                .allowObjectPrimitiveKeys(true);
     }
 
     public boolean allowToplevelValues() {
@@ -46,6 +49,15 @@ public class JsonParserConfig {
 
     public JsonParserConfig allowMissingArrayValues(boolean allowMissingValues) {
         this.allowMissingArrayValues = allowMissingValues;
+        return this;
+    }
+
+    public boolean allowObjectPrimitiveKeys() {
+        return allowObjectPrimitiveKeys;
+    }
+
+    public JsonParserConfig allowObjectPrimitiveKeys(boolean allowObjectPrimitiveKeys) {
+        this.allowObjectPrimitiveKeys = allowObjectPrimitiveKeys;
         return this;
     }
 }
