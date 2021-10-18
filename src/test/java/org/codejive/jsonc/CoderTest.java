@@ -1,6 +1,7 @@
 package org.codejive.jsonc;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,21 +15,30 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.codejive.jsonc.parser.ContainerFactory;
 import org.codejive.jsonc.parser.ContentHandler;
 import org.codejive.jsonc.parser.JsonParseException;
 import org.codejive.jsonc.parser.JsonParser;
 import org.codejive.jsonc.parser.JsonParserConfig;
+import org.codejive.jsonc.parser.TypeFactory;
 import org.junit.jupiter.api.Test;
 
 public class CoderTest {
+
+    @Test
+    public void testTypes() throws Exception {
+        String s = "[\"aap\", 42, true, null]";
+        JsonArray array = (JsonArray) Jsonc.parseWithException(s);
+        assertThat(
+                array,
+                contains(Jsonc.string("aap"), Jsonc.number(42L), Jsonc.bool(true), Jsonc.nil()));
+    }
 
     @Test
     public void testDecodeNested() throws Exception {
         System.out.println("=======decode=======");
 
         String s = "[0,{\"1\":{\"2\":{\"3\":{\"4\":[5,{\"6\":7}]}}}}]";
-        Object obj = JsonValue.parseWithException(s);
+        Object obj = Jsonc.parseWithException(s);
         JsonArray array = (JsonArray) obj;
         System.out.println("======the 2nd element of array======");
         System.out.println(array.get(1));
@@ -44,15 +54,15 @@ public class CoderTest {
     @Test
     public void testDecodeEmpty() throws Exception {
         String s = "{}";
-        Object obj = JsonValue.parseWithException(s);
-        assertEquals("{}", obj.toString());
+        Object obj = Jsonc.parseWithException(s);
+        assertEquals(s, obj.toString());
     }
 
     @Test
     public void testDecodeExtraArrayComma() throws Exception {
         String s = "[5,]";
         Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
-        assertEquals("[5]", obj.toString());
+        assertEquals("[5,]", obj.toString());
         assertThrows(
                 JsonParseException.class,
                 () -> {
@@ -63,8 +73,8 @@ public class CoderTest {
     @Test
     public void testDecodeMissingArrayValue() throws Exception {
         String s = "[5,,2]";
-        Object obj = (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
-        assertEquals("[5,null,2]", obj.toString());
+        JsonArray obj = (JsonArray) (new JsonParser(JsonParserConfig.lenientJson())).parse(s);
+        assertEquals(s, obj.toJSONString());
         assertThrows(
                 JsonParseException.class,
                 () -> {
@@ -75,15 +85,16 @@ public class CoderTest {
     @Test
     public void testDecodeEscapeSequences() throws Exception {
         String s = "[\"hello\\bworld\\\"abc\\tdef\\\\ghi\\rjkl\\n123\\u4e2d\"]";
-        Object obj = JsonValue.parseWithException(s);
-        assertEquals("hello\bworld\"abc\tdef\\ghi\rjkl\n123中", ((List) obj).get(0).toString());
+        JsonArray obj = (JsonArray) Jsonc.parseWithException(s);
+        assertEquals(s, obj.toJSONString());
+        assertEquals("hello\bworld\"abc\tdef\\ghi\rjkl\n123中", obj.get(0).toString());
     }
 
     @Test
     public void testDecodeIncompleteObject() {
         try {
             String s = "{\"name\":";
-            Object obj = JsonValue.parseWithException(s);
+            Object obj = Jsonc.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(8L, pe.getPosition());
@@ -94,7 +105,7 @@ public class CoderTest {
     public void testDecodeMissingOjectValue() {
         try {
             String s = "{\"name\":}";
-            Object obj = JsonValue.parseWithException(s);
+            Object obj = Jsonc.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(8L, pe.getPosition());
@@ -105,7 +116,7 @@ public class CoderTest {
     public void testDecodeIncompleteObject2() {
         try {
             String s = "{\"name";
-            Object obj = JsonValue.parseWithException(s);
+            Object obj = Jsonc.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(6L, pe.getPosition());
@@ -116,7 +127,7 @@ public class CoderTest {
     public void testMissingObjectEntry() {
         try {
             String s = "{,\"name\":\"value\"}";
-            Object obj = JsonValue.parseWithException(s);
+            Object obj = Jsonc.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
             assertEquals(1L, pe.getPosition());
@@ -127,7 +138,7 @@ public class CoderTest {
     public void testDecodeMismatchedBrackets() {
         try {
             String s = "[[null, 123.45, \"a \tb c\"}, true]";
-            Object obj = JsonValue.parseWithException(s);
+            Object obj = Jsonc.parseWithException(s);
         } catch (JsonParseException pe) {
             assertEquals(24L, pe.getPosition());
             System.out.println(pe.getMessage());
@@ -136,21 +147,37 @@ public class CoderTest {
 
     @Test
     public void testDecodeWithContainerFactory() throws Exception {
-        String s = "{\"first\": 123, \"second\": [4, 5, 6], \"third\": 789}";
-        ContainerFactory containerFactory =
-                new ContainerFactory() {
-                    public List creatArrayContainer() {
+        String s = "{\"first\": 123, \"second\": [4, 5, 6], \"third\": 78.9}";
+        TypeFactory typeFactory =
+                new TypeFactory() {
+                    @Override
+                    public List createArrayContainer() {
                         return new LinkedList();
                     }
 
+                    @Override
                     public Map createObjectContainer() {
                         return new LinkedHashMap();
+                    }
+
+                    @Override
+                    public Object createPrimitive(
+                            JsonPrimitive.Type type, String value, String rawValue) {
+                        switch (type) {
+                            case INTEGER:
+                                return Long.parseLong(value);
+                            case REAL:
+                                return Double.parseDouble(value);
+                            case BOOLEAN:
+                                return Boolean.parseBoolean(value);
+                        }
+                        return value;
                     }
                 };
 
         try {
             JsonParser parser = new JsonParser();
-            Map json = (Map) parser.parse(s, containerFactory);
+            Map json = (Map) parser.parse(s, typeFactory);
             Iterator iter = json.entrySet().iterator();
             System.out.println("==iterate result==");
             while (iter.hasNext()) {
@@ -159,10 +186,9 @@ public class CoderTest {
             }
 
             System.out.println("==toJSONString()==");
-            System.out.println(JsonValue.toJSONString(json));
+            System.out.println(Jsonc.toJSONString(json));
             assertEquals(
-                    "{\"first\":123,\"second\":[4,5,6],\"third\":789}",
-                    JsonValue.toJSONString(json));
+                    "{\"first\":123,\"second\":[4,5,6],\"third\":78.9}", Jsonc.toJSONString(json));
         } catch (JsonParseException pe) {
             pe.printStackTrace();
         }
@@ -194,9 +220,11 @@ public class CoderTest {
                         return true;
                     }
 
-                    public boolean primitive(Status status, Object value)
-                            throws JsonParseException {
-                        System.out.println("primitive(): " + value);
+                    @Override
+                    public boolean primitive(
+                            Status status, JsonPrimitive.Type type, String value, String rawValue)
+                            throws JsonParseException, IOException {
+                        System.out.println("primitive(" + type + ") : " + value);
                         return true;
                     }
 
@@ -256,17 +284,17 @@ public class CoderTest {
                 return found;
             }
 
-            public void startJSON() throws JsonParseException, IOException {
+            public void startJSON() {
                 found = false;
                 end = false;
             }
 
-            public void endJSON() throws JsonParseException, IOException {
+            public void endJSON() {
                 end = true;
             }
 
-            public boolean primitive(Status status, Object value)
-                    throws JsonParseException, IOException {
+            public boolean primitive(
+                    Status status, JsonPrimitive.Type type, String value, String rawValue) {
                 if (key != null) {
                     if (key.equals(matchKey)) {
                         found = true;
@@ -278,28 +306,28 @@ public class CoderTest {
                 return true;
             }
 
-            public boolean startArray(Status status) throws JsonParseException, IOException {
+            public boolean startArray(Status status) {
                 return true;
             }
 
-            public boolean startObject(Status status) throws JsonParseException, IOException {
+            public boolean startObject(Status status) {
                 return true;
             }
 
-            public boolean startObjectEntry(String key) throws JsonParseException, IOException {
+            public boolean startObjectEntry(String key) {
                 this.key = key;
                 return true;
             }
 
-            public boolean endArray(Status status) throws JsonParseException, IOException {
+            public boolean endArray(Status status) {
                 return false;
             }
 
-            public boolean endObject(Status status) throws JsonParseException, IOException {
+            public boolean endObject(Status status) {
                 return true;
             }
 
-            public boolean endObjectEntry() throws JsonParseException, IOException {
+            public boolean endObjectEntry() {
                 return true;
             }
         }
@@ -367,9 +395,9 @@ public class CoderTest {
         list.add(new Boolean(true));
         list.add(null);
         System.out.println("======list==========");
-        System.out.println(JsonArray.toJSONString(list));
+        System.out.println(Jsonc.toJSONString(list));
         System.out.println();
-        assertEquals("[\"abc\\u0010a\\/\",123,222.123,true,null]", JsonArray.toJSONString(list));
+        assertEquals("[\"abc\\u0010a\\/\",123,222.123,true,null]", Jsonc.toJSONString(list));
 
         Map map = new HashMap();
         map.put("array1", list);
@@ -377,8 +405,7 @@ public class CoderTest {
         System.out.println(map);
         System.out.println();
         assertEquals(
-                "{\"array1\":[\"abc\\u0010a\\/\",123,222.123,true,null]}",
-                JsonObject.toJSONString(map));
+                "{\"array1\":[\"abc\\u0010a\\/\",123,222.123,true,null]}", Jsonc.toJSONString(map));
 
         Map m1 = new LinkedHashMap();
         Map m2 = new LinkedHashMap();
@@ -392,14 +419,14 @@ public class CoderTest {
         m2.put("k23", "v23");
         l1.add(m1);
         l1.add(m2);
-        String jsonString = JsonValue.toJSONString(l1);
+        String jsonString = Jsonc.toJSONString(l1);
         System.out.println(jsonString);
         assertEquals(
                 "[{\"k11\":\"v11\",\"k12\":\"v12\",\"k13\":\"v13\"},{\"k21\":\"v21\",\"k22\":\"v22\",\"k23\":\"v23\"}]",
                 jsonString);
 
         StringWriter out = new StringWriter();
-        JsonValue.writeJSONString(l1, out);
+        Jsonc.writeJSONString(l1, out, true);
         jsonString = out.toString();
         System.out.println(jsonString);
         assertEquals(
@@ -419,7 +446,7 @@ public class CoderTest {
         m3.put("k35", l2);
         m1.put("k14", m3);
         out = new StringWriter();
-        JsonValue.writeJSONString(l1, out);
+        Jsonc.writeJSONString(l1, out, true);
         jsonString = out.toString();
         System.out.println(jsonString);
         assertEquals(

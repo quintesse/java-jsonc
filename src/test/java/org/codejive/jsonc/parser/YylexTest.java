@@ -14,12 +14,14 @@ public class YylexTest {
 
     @Test
     public void testString() throws Exception {
-        testLexOk("\"\\/\"", Yytoken.primitive("/"));
+        testLexOk("\"\\/\"", Yytoken.string("/", "\\/"));
     }
 
     @Test
     public void testEscapes() throws Exception {
-        testLexOk("\"abc\\/\\r\\b\\n\\t\\f\\\\\"", Yytoken.primitive("abc/\r\b\n\t\f\\"));
+        testLexOk(
+                "\"abc\\/\\r\\b\\n\\t\\f\\\\\"",
+                Yytoken.string("abc/\r\b\n\t\f\\", "abc\\/\\r\\b\\n\\t\\f\\\\"));
     }
 
     @Test
@@ -29,17 +31,22 @@ public class YylexTest {
 
     @Test
     public void testIntegerZero() throws Exception {
-        testLexOk("0", Yytoken.primitive(0L));
+        testLexOk("0", Yytoken.integer("0"));
     }
 
     @Test
     public void testIntegerPositive() throws Exception {
-        testLexOk("42", Yytoken.primitive(42L));
+        testLexOk("42", Yytoken.integer("42"));
     }
 
     @Test
     public void testIntegerNegative() throws Exception {
-        testLexOk("-123456789", Yytoken.primitive(-123456789L));
+        testLexOk("-123456789", Yytoken.integer("-123456789"));
+    }
+
+    @Test
+    public void testReal() throws Exception {
+        testLexOk("4.2e-4", Yytoken.real("4.2e-4"));
     }
 
     @Test
@@ -76,6 +83,9 @@ public class YylexTest {
             assertThat(token.getClass(), equalTo(expectedToken.getClass()));
             if (expectedToken instanceof Yytoken.YyPrimitiveToken) {
                 assertThat(token.value, equalTo(((Yytoken.YyPrimitiveToken) expectedToken).value));
+                assertThat(
+                        token.rawValue,
+                        equalTo(((Yytoken.YyPrimitiveToken) expectedToken).rawValue));
             }
         }
     }

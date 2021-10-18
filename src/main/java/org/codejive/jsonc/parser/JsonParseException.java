@@ -1,10 +1,6 @@
 package org.codejive.jsonc.parser;
 
-/**
- * ParseException explains why and where the error occurs in source JSON text.
- *
- * @author FangYidong<fangyidong@yahoo.com.cn>
- */
+/** ParseException explains why and where the error occurs in source JSON text. */
 public class JsonParseException extends Exception {
     public static final int ERROR_UNEXPECTED_CHAR = 0;
     public static final int ERROR_UNEXPECTED_TOKEN = 1;

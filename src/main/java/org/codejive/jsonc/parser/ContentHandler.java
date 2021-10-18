@@ -1,14 +1,9 @@
 package org.codejive.jsonc.parser;
 
 import java.io.IOException;
+import org.codejive.jsonc.JsonPrimitive;
 
-/**
- * A simplified and stoppable SAX-like content handler for stream processing of JSON text.
- *
- * @see org.xml.sax.ContentHandler
- * @see JsonParser#parse(java.io.Reader, ContentHandler, boolean)
- * @author FangYidong<fangyidong@yahoo.com.cn>
- */
+/** A simplified and stoppable SAX-like content handler for stream processing of JSON text. */
 public interface ContentHandler {
     enum Status {
         TOPLEVEL,
@@ -35,6 +30,7 @@ public interface ContentHandler {
     /**
      * Receive notification of the beginning of a JSON object.
      *
+     * @param status - The current parse status
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException - JSONParser will stop and throw the same exception to the caller
      *     when receiving this exception.
@@ -45,6 +41,7 @@ public interface ContentHandler {
     /**
      * Receive notification of the end of a JSON object.
      *
+     * @param status - The current parse status
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException
      * @see #startObject
@@ -73,6 +70,7 @@ public interface ContentHandler {
     /**
      * Receive notification of the beginning of a JSON array.
      *
+     * @param status - The current parse status
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException
      * @see #endArray
@@ -82,6 +80,7 @@ public interface ContentHandler {
     /**
      * Receive notification of the end of a JSON array.
      *
+     * @param status - The current parse status
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException
      * @see #startArray
@@ -92,10 +91,15 @@ public interface ContentHandler {
      * Receive notification of the JSON primitive values: java.lang.String, java.lang.Number,
      * java.lang.Boolean null
      *
-     * @param value - Instance of the following: java.lang.String, java.lang.Number,
-     *     java.lang.Boolean null
+     * @param status - The current parse status
+     * @param type - Indicates the type of primitive
+     * @param value - The value of the type as a string
+     * @param rawValue - The value of the type as a raw string. This is only useful for STRING types
+     *     containing escape sequences. In which case escape sequences will NOT have been parsed and
+     *     replaced.
      * @return false if the handler wants to stop parsing after return.
      * @throws JsonParseException
      */
-    boolean primitive(Status status, Object value) throws JsonParseException, IOException;
+    boolean primitive(Status status, JsonPrimitive.Type type, String value, String rawValue)
+            throws JsonParseException, IOException;
 }

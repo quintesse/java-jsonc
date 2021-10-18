@@ -3,13 +3,24 @@ package org.codejive.jsonc.parser;
 %%
 
 %{
-private StringBuilder sb = new StringBuilder();
+private StringBuilder string = new StringBuilder();
+private StringBuilder rawString = new StringBuilder();
+private boolean hasEscapes = false;
 
 long getPosition(){
     return yychar;
 }
 
-private char unicodeChar() throws JsonParseException {
+private void appendEscape(char escape) {
+    if (!hasEscapes) {
+        rawString.append(string);
+        hasEscapes = true;
+    }
+    string.append(escape);
+    rawString.append(yytext());
+}
+
+private char decodeUnicodeChar() throws JsonParseException {
     try {
         int hex = Integer.parseInt(yytext().substring(2), 16);
         return (char)hex;
@@ -30,12 +41,11 @@ digits = {digit}+
 non_zero_digit = [1-9]
 hex_digit = [0-9a-fA-F]
 
-integer = {digits}
+integer = -?{digits}
 fraction = \.{digits}
 exponent = [eE][-+]?{digits}
 
-num_int = -?{integer}
-num_float = {num_int}{fraction}?{exponent}?
+real = {integer}{fraction}?{exponent}?
 
 boolean = "true" | "false"
 
@@ -47,11 +57,11 @@ UNESCAPED_CH = [^\"\\]
 %%
 
 <YYINITIAL> {
-    \"                  { sb.setLength(0); yybegin(STRING); }
-    {num_int}           { return Yytoken.primitive(Long.valueOf(yytext())); }
-    {num_float}         { return Yytoken.primitive(Double.valueOf(yytext())); }
-    {boolean}           { return Yytoken.primitive(Boolean.valueOf(yytext())); }
-    {null}              { return Yytoken.primitive(null); }
+    \"                  { string.setLength(0); rawString.setLength(0); hasEscapes = false; yybegin(STRING); }
+    {integer}           { return Yytoken.integer(yytext()); }
+    {real}              { return Yytoken.real(yytext()); }
+    {boolean}           { return Yytoken.bool(yytext()); }
+    {null}              { return Yytoken.nil(); }
     "{"                 { return Yytoken.TYPE_LEFT_BRACE; }
     "}"                 { return Yytoken.TYPE_RIGHT_BRACE; }
     "["                 { return Yytoken.TYPE_LEFT_SQUARE; }
@@ -63,16 +73,16 @@ UNESCAPED_CH = [^\"\\]
 }
 
 <STRING> {
-    \"                  { yybegin(YYINITIAL); return Yytoken.primitive(sb.toString()); }
-    {UNESCAPED_CH}+     { sb.append(yytext()); }
-    \\\"                { sb.append('"'); }
-    \\\\                { sb.append('\\'); }
-    \\\/                { sb.append('/'); }
-    \\b                 { sb.append('\b'); }
-    \\f                 { sb.append('\f'); }
-    \\n                 { sb.append('\n'); }
-    \\r                 { sb.append('\r'); }
-    \\t                 { sb.append('\t'); }
-    \\u{hex_digit}{4}   { sb.append(unicodeChar()); }
+    \"                  { yybegin(YYINITIAL); return Yytoken.string(string.toString(), hasEscapes ? rawString.toString() : string.toString()); }
+    {UNESCAPED_CH}+     { string.append(yytext()); if (hasEscapes) rawString.append(yytext()); }
+    \\\"                { appendEscape('"'); }
+    \\\\                { appendEscape('\\'); }
+    \\\/                { appendEscape('/'); }
+    \\b                 { appendEscape('\b'); }
+    \\f                 { appendEscape('\f'); }
+    \\n                 { appendEscape('\n'); }
+    \\r                 { appendEscape('\r'); }
+    \\t                 { appendEscape('\t'); }
+    \\u{hex_digit}{4}   { appendEscape(decodeUnicodeChar()); }
     \\.                 { throw JsonParseException.unexpectedChar(yychar, yycharat(1)); }
 }

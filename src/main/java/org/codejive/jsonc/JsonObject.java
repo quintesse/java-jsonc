@@ -1,18 +1,12 @@
 package org.codejive.jsonc;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-/**
- * A JSON object. Key value pairs are unordered. JSONObject supports java.util.Map interface.
- *
- * @author FangYidong<fangyidong@yahoo.com.cn>
- */
-public class JsonObject extends HashMap<String, Object> {
+/** A JSON object. Key value pairs are unordered. JSONObject supports java.util.Map interface. */
+public class JsonObject extends HashMap<String, Object> implements JsonElement {
     private static final long serialVersionUID = -503443796854799292L;
 
     public JsonObject() {
@@ -29,91 +23,16 @@ public class JsonObject extends HashMap<String, Object> {
         super(map);
     }
 
-    /**
-     * Encode a map into JSON text and write it to out. If this map is also a JSONAware or
-     * JSONStreamAware, JSONAware or JSONStreamAware specific behaviours will be ignored at this top
-     * level.
-     *
-     * @see JsonValue#writeJSONString(Object, Writer)
-     * @param map
-     * @param out
-     */
-    public static void writeJSONString(Map<String, Object> map, Writer out) throws IOException {
-        if (map == null) {
-            out.write("null");
-            return;
-        }
-
-        boolean first = true;
-        Iterator<Entry<String, Object>> iter = map.entrySet().iterator();
-
-        out.write('{');
-        while (iter.hasNext()) {
-            if (first) first = false;
-            else out.write(',');
-            Entry<String, Object> entry = iter.next();
-            out.write('\"');
-            out.write(escape(String.valueOf(entry.getKey())));
-            out.write('\"');
-            out.write(':');
-            JsonValue.writeJSONString(entry.getValue(), out);
-        }
-        out.write('}');
-    }
-
     public void writeJSONString(Writer out) throws IOException {
-        writeJSONString(this, out);
+        Jsonc.writeJSONString(this, out, true);
     }
 
-    /**
-     * Convert a map to JSON text. The result is a JSON object. If this map is also a JSONAware,
-     * JSONAware specific behaviours will be omitted at this top level.
-     *
-     * @see JsonValue#toJSONString(Object)
-     * @param map
-     * @return JSON text, or "null" if map is null.
-     */
-    public static String toJSONString(Map<String, Object> map) {
-        final StringWriter writer = new StringWriter();
-
-        try {
-            writeJSONString(map, writer);
-            return writer.toString();
-        } catch (IOException e) {
-            // This should never happen with a StringWriter
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Override
     public String toJSONString() {
-        return toJSONString(this);
+        return Jsonc.toJSONString(this, true);
     }
 
     public String toString() {
-        return toJSONString();
-    }
-
-    public static String toString(String key, Object value) {
-        StringBuffer sb = new StringBuffer();
-        sb.append('\"');
-        if (key == null) sb.append("null");
-        else JsonValue.escape(key, sb);
-        sb.append('\"').append(':');
-
-        sb.append(JsonValue.toJSONString(value));
-
-        return sb.toString();
-    }
-
-    /**
-     * Escape quotes, \, /, \r, \n, \b, \f, \t and other control characters (U+0000 through U+001F).
-     * It's the same as JSONValue.escape() only for compatibility here.
-     *
-     * @see JsonValue#escape(String)
-     * @param s
-     * @return
-     */
-    public static String escape(String s) {
-        return JsonValue.escape(s);
+        return Jsonc.toJSONString(this, false);
     }
 }
