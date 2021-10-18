@@ -6,6 +6,8 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 import org.codejive.jsonc.JsonArray;
 import org.codejive.jsonc.JsonObject;
 
@@ -267,6 +269,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.TOPLEVEL)) return;
                             nextToken();
+                            handleMissingObjectKeyValue();
                         } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
                             status = Status.IN_ARRAY;
                             statusStack.addFirst(status);
@@ -285,17 +288,18 @@ public class JsonParser {
                     case IN_OBJECT:
                         if (Yytoken.TYPE_COMMA == token) {
                             nextToken();
+                            handleMissingObjectKeyValue();
                             handleTrailingSeparator();
                         } else if (token instanceof Yytoken.YyPrimitiveToken) {
                             if (token.value instanceof String) {
-                                String key = (String) token.value;
+                                String key = Objects.toString(token.value);
                                 status = Status.PASSED_PAIR_KEY;
                                 statusStack.addFirst(status);
                                 if (!contentHandler.startObjectEntry(key)) return;
+                                nextToken();
                             } else {
                                 status = Status.IN_ERROR;
                             }
-                            nextToken();
                         } else if (Yytoken.TYPE_RIGHT_BRACE == token) {
                             if (statusStack.size() > 1) {
                                 statusStack.removeFirst();
@@ -338,6 +342,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.OBJECT)) return;
                             nextToken();
+                            handleMissingObjectKeyValue();
                         } else {
                             status = Status.IN_ERROR;
                         }
@@ -376,6 +381,7 @@ public class JsonParser {
                             statusStack.addFirst(status);
                             if (!contentHandler.startObject(ContentHandler.Status.ARRAY)) return;
                             nextToken();
+                            handleMissingObjectKeyValue();
                         } else if (Yytoken.TYPE_LEFT_SQUARE == token) {
                             status = Status.IN_ARRAY;
                             statusStack.addFirst(status);
@@ -422,6 +428,14 @@ public class JsonParser {
                 // Missing values are not allowed
                 status = Status.IN_ERROR;
             }
+        }
+        return false;
+    }
+
+    private boolean handleMissingObjectKeyValue() {
+        if (token == Yytoken.TYPE_COMMA) {
+            // Missing key:values are not allowed
+            status = Status.IN_ERROR;
         }
         return false;
     }

@@ -109,6 +109,17 @@ public class CoderTest {
     }
 
     @Test
+    public void testMissingObjectEntry() {
+        try {
+            String s = "{,\"name\":\"value\"}";
+            Object obj = JsonValue.parseWithException(s);
+        } catch (JsonParseException pe) {
+            assertEquals(JsonParseException.ERROR_UNEXPECTED_TOKEN, pe.getErrorType());
+            assertEquals(1L, pe.getPosition());
+        }
+    }
+
+    @Test
     public void testDecodeMismatchedBrackets() {
         try {
             String s = "[[null, 123.45, \"a \tb c\"}, true]";
