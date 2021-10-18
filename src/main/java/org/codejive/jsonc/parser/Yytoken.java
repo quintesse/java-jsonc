@@ -8,8 +8,8 @@ public class Yytoken {
     public static final Yytoken TYPE_RIGHT_BRACE = new Yytoken("}");
     public static final Yytoken TYPE_LEFT_SQUARE = new Yytoken("[");
     public static final Yytoken TYPE_RIGHT_SQUARE = new Yytoken("]");
-    public static final Yytoken TYPE_COMMA = new Yytoken(",");
-    public static final Yytoken TYPE_COLON = new Yytoken(":");
+    public static final Yytoken TYPE_ITEM_SEPARATOR = new Yytoken(",");
+    public static final Yytoken TYPE_PAIR_SEPARATOR = new Yytoken(":");
     ;
     public static final Yytoken TYPE_EOF = new Yytoken("<EOF>");
     ; // end of file

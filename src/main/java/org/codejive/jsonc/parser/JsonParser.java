@@ -285,7 +285,7 @@ public class JsonParser {
                         break;
 
                     case IN_OBJECT:
-                        if (Yytoken.TYPE_COMMA == token) {
+                        if (Yytoken.TYPE_ITEM_SEPARATOR == token) {
                             nextToken();
                             handleMissingObjectKeyValue();
                             handleTrailingSeparator();
@@ -357,7 +357,7 @@ public class JsonParser {
                         break;
 
                     case IN_ARRAY:
-                        if (Yytoken.TYPE_COMMA == token) {
+                        if (Yytoken.TYPE_ITEM_SEPARATOR == token) {
                             nextToken();
                             if (handleMissingArrayValue(contentHandler)) return;
                             handleTrailingSeparator();
@@ -418,7 +418,7 @@ public class JsonParser {
 
     private boolean handleMissingArrayValue(ContentHandler contentHandler)
             throws JsonParseException, IOException {
-        if (token == Yytoken.TYPE_COMMA) {
+        if (token == Yytoken.TYPE_ITEM_SEPARATOR) {
             if (config.allowMissingArrayValues()) {
                 // Missing values are allowed, so we add a `null`
                 if (!contentHandler.primitive(ContentHandler.Status.ARRAY, null)) return true;
@@ -431,7 +431,7 @@ public class JsonParser {
     }
 
     private boolean handleMissingObjectKeyValue() {
-        if (token == Yytoken.TYPE_COMMA) {
+        if (token == Yytoken.TYPE_ITEM_SEPARATOR) {
             // Missing key:values are not allowed
             status = Status.IN_ERROR;
         }
@@ -440,7 +440,7 @@ public class JsonParser {
 
     private boolean handleMissingObjectValue(ContentHandler contentHandler, Object keyValue)
             throws JsonParseException, IOException {
-        if (token != Yytoken.TYPE_COLON) {
+        if (token != Yytoken.TYPE_PAIR_SEPARATOR) {
             if (config.allowObjectValuesAsKeys()) {
                 // Missing values are allowed, so we add a `null`
                 if (!contentHandler.primitive(ContentHandler.Status.ARRAY, keyValue)) return true;

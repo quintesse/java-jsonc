@@ -56,8 +56,8 @@ UNESCAPED_CH = [^\"\\]
     "}"                 { return Yytoken.TYPE_RIGHT_BRACE; }
     "["                 { return Yytoken.TYPE_LEFT_SQUARE; }
     "]"                 { return Yytoken.TYPE_RIGHT_SQUARE; }
-    ","                 { return Yytoken.TYPE_COMMA; }
-    ":"                 { return Yytoken.TYPE_COLON; }
+    ","                 { return Yytoken.TYPE_ITEM_SEPARATOR; }
+    ":"                 { return Yytoken.TYPE_PAIR_SEPARATOR; }
     {white_space}+      {}
     .                   { throw JsonParseException.unexpectedChar(yychar, yycharat(0)); }
 }
